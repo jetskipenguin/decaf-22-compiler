@@ -30,9 +30,14 @@ std::vector<Token> tokenize(const std::string& content) {
             
             size_t line_number = 1 + std::count(content.begin(), content.begin() + pos, '\n');
             size_t line_start = content.rfind('\n', pos);
-            if (line_start == std::string::npos) line_start = 0;
-            else line_start++;
             
+            if (line_start == std::string::npos) {
+                line_start = 0;
+            }
+            else {
+                line_start++;
+            }
+
             size_t column = pos - line_start + 1;
 
             tokens.push_back({
@@ -56,6 +61,15 @@ std::vector<Token> tokenize(const std::string& content) {
     return tokens;
 }
 
+void print_tokens(const std::vector<Token>& tokens) {
+    for(const auto& token: tokens) {
+        std::cout << token.text
+            << " line " << token.line
+            << " cols " << token.column << "-" << token.column + token.length
+            << " is " << token_type_to_string(token.type)
+            << std::endl;
+    }
+}
 
 int main() {
     std::ifstream file("/home/jetskipenguin/C++/decaf-22-compiler/samples/badbool.frag");
@@ -73,13 +87,7 @@ int main() {
 
     auto tokens = tokenize(content);
     
-    for(const auto& token: tokens) {
-        std::cout << token.text
-            << " line " << token.line
-            << " cols " << token.column << "-" << token.column + token.length
-            << " is " << token_type_to_string(token.type)
-            << std::endl;
-    }
+    print_tokens(tokens);
 
     return 0;
 }
