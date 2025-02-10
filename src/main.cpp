@@ -76,7 +76,7 @@ void print_tokens(const std::vector<Token>& tokens) {
 
         std::cout << "line " << token.line
             << " cols " << token.column << "-" << token.column + token.length - 1
-            << " is " << token_type_to_string(token.type)
+            << " is " << token_type_to_string(token)
             << std::endl;
     }
 }
