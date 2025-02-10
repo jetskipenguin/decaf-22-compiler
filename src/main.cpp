@@ -16,8 +16,8 @@ std::vector<Token> tokenize(const std::string& content) {
         {std::regex(R"(\b(true|false)\b)"), TokenType::T_BoolConstant},
         {std::regex(R"([0-9]+\.[0-9]*([Ee][+-]?[0-9]+)?)"), TokenType::T_DoubleConstant},
         {std::regex(R"([0-9]+)"), TokenType::T_IntConstant},
-        {std::regex(R"([a-zA-Z][a-zA-Z0-9_]*)"), TokenType::T_Identifier},
-        {std::regex(R"(\"[^\"\\n]*\")"), TokenType::T_StringConstant},
+        {std::regex(R"(\"[^\"\n]*\")"), TokenType::T_StringConstant},
+        {std::regex(R"(\b[a-zA-Z][a-zA-Z0-9_]*\b)"), TokenType::T_Identifier},
         {std::regex(R"(\+|-|\*|/|<|>|=|;|,|!|\{|\}|\(|\)|\|\||<=|>=|==)"), TokenType::T_Operator}
     };
 
@@ -64,9 +64,17 @@ std::vector<Token> tokenize(const std::string& content) {
 }
 
 void print_tokens(const std::vector<Token>& tokens) {
-    for(const auto& token: tokens) {
-        std::cout << token.text
-            << std::string(8 - token.text.length(), ' ') << "line " << token.line
+    for(Token token: tokens) {
+        std::cout << token.text;
+        // Only add padding if text is shorter than 8 characters
+        if (token.text.length() < 8) {
+            std::cout << std::string(8 - token.text.length(), ' ');
+        } else {
+            std::cout << ' ';  // Single space for long tokens
+        }
+
+
+        std::cout << "line " << token.line
             << " cols " << token.column << "-" << token.column + token.length - 1
             << " is " << token_type_to_string(token.type)
             << std::endl;
@@ -94,7 +102,7 @@ int main(int argc, char* argv[]) {
     file.close();
 
     auto tokens = tokenize(content);
-    
+
     print_tokens(tokens);
 
     return 0;
