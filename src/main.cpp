@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <limits.h>
 #include "Token.h"
+#include <boost/regex.hpp>
 
 // Scan string contents and return vector of tokens
 std::vector<Token> tokenize(const std::string& content) {

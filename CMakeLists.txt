@@ -3,7 +3,6 @@ project(decafe-22-compiler)
 
 set(CMAKE_CXX_STANDARD 20)
 
-include_directories(src/third_party/boost/regex)
-
-add_subdirectory(src/third_party/boost/regex)
+find_package(Boost REQUIRED COMPONENTS regex)
 add_executable(decafe-22-compiler src/main.cpp)
+target_link_libraries(decafe-22-compiler PRIVATE Boost::regex)
