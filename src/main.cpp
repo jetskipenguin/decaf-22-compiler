@@ -11,7 +11,7 @@ std::vector<Token> tokenize(const std::string& content) {
 
     std::vector<std::pair<std::regex, TokenType>> patterns = {
         {std::regex(R"(\b(void|int|double|string|while|if|else|return|break)\b)"), TokenType::T_Reserved},
-        {std::regex(R"(\b(true|false|TRUE|FALSE)\b)"), TokenType::T_BoolConstant},
+        {std::regex(R"(\b(true|false)\b)"), TokenType::T_BoolConstant},
         {std::regex(R"([0-9]+\.[0-9]*([Ee][+-]?[0-9]+)?)"), TokenType::T_DoubleConstant},
         {std::regex(R"([0-9]+)"), TokenType::T_IntConstant},
         {std::regex(R"([a-zA-Z][a-zA-Z0-9_]*)"), TokenType::T_Identifier},
