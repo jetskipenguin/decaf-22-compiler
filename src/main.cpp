@@ -34,7 +34,7 @@ void find_match(std::string content, std::regex pattern, std::string identifier_
 
 
 int main() {
-    std::ifstream file("/home/jetskipenguin/C++/decaf-22-compiler/samples/badbool.frag");
+    std::ifstream file("/home/jetskipenguin/C++/decaf-22-compiler/samples/baddouble.frag");
     if (!file.is_open()) {
         std::cerr << "Failed to open badbool.frag" << std::endl;
         return 1;
