@@ -1,3 +1,0 @@
-C:/Users/Collin/CLionProjects/decaf-22-compiler/cmake-build-debug/CMakeFiles/untitled.dir
-C:/Users/Collin/CLionProjects/decaf-22-compiler/cmake-build-debug/CMakeFiles/edit_cache.dir
-C:/Users/Collin/CLionProjects/decaf-22-compiler/cmake-build-debug/CMakeFiles/rebuild_cache.dir
