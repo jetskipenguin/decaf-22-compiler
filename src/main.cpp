@@ -12,23 +12,24 @@
 std::vector<Token> tokenize(const std::string& content) {
     std::vector<Token> tokens;
 
-    std::vector<std::pair<std::regex, TokenType>> patterns = {
-        {std::regex(R"(\b(void|int|double|string|while|if|else|return|break)\b)"), TokenType::T_Reserved},
-        {std::regex(R"(\b(true|false)\b)"), TokenType::T_BoolConstant},
-        {std::regex(R"([0-9]+\.[0-9]*([Ee][+-]?[0-9]+)?)"), TokenType::T_DoubleConstant},
-        {std::regex(R"([0-9]+)"), TokenType::T_IntConstant},
-        {std::regex(R"(\"[^\"\n]*\")"), TokenType::T_StringConstant},
-        {std::regex(R"(\b[a-zA-Z][a-zA-Z0-9_]*\b)"), TokenType::T_Identifier},
-        {std::regex(R"(\+|-|\*|/|<|>|=|;|,|!|\{|\}|\(|\)|\|\||<=|>=|==)"), TokenType::T_Operator}
+    std::vector<std::pair<boost::regex, TokenType>> patterns = {
+        {boost::regex(R"(\b(void|int|double|string|while|if|else|return|break)\b)"), TokenType::T_Reserved},
+        {boost::regex(R"(\b(true|false)\b)"), TokenType::T_BoolConstant},
+        {boost::regex(R"([0-9]+\.[0-9]*([Ee][+-]?[0-9]+)?)"), TokenType::T_DoubleConstant},
+        {boost::regex(R"([0-9]+)"), TokenType::T_IntConstant},
+        {boost::regex(R"(\"[^\"\n]*\")"), TokenType::T_StringConstant},
+        {boost::regex(R"(\b[a-zA-Z][a-zA-Z0-9_]*\b)"), TokenType::T_Identifier},
+        {boost::regex(R"((?<![0-9])\.|[\+\-\*\/\<\>\=\;\,\!\{\}\(\)]|\|\||<=|>=|==)"), TokenType::T_Operator}
     };
 
 
-    for (const auto& [pattern, type] : patterns) {
-        auto matches_begin = std::sregex_iterator(content.begin(), content.end(), pattern);
-        auto matches_end = std::sregex_iterator();
 
-        for (std::sregex_iterator i = matches_begin; i != matches_end; ++i) {
-            std::smatch match = *i;
+    for (const auto& [pattern, type] : patterns) {
+        boost::sregex_iterator matches_begin(content.begin(), content.end(), pattern);
+        boost::sregex_iterator matches_end;
+
+        for (boost::sregex_iterator i = matches_begin; i != matches_end; ++i) {
+            boost::smatch match = *i;
             size_t pos = match.position();
             
             size_t line_number = 1 + std::count(content.begin(), content.begin() + pos, '\n');
