@@ -1,0 +1,3 @@
+[submodule "src/third_party/third_party/boost/regex"]
+	path = src/third_party/third_party/boost/regex
+	url = https://github.com/boostorg/regex.git
