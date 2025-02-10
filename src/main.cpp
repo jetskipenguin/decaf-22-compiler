@@ -4,7 +4,7 @@
 #include <string>
 #include <algorithm>
 #include <unistd.h>
-#include <limits.h>  // for PATH_MAX
+#include <limits.h>
 #include "Token.h"
 
 // Scan string contents and return vector of tokens
@@ -66,8 +66,8 @@ std::vector<Token> tokenize(const std::string& content) {
 void print_tokens(const std::vector<Token>& tokens) {
     for(const auto& token: tokens) {
         std::cout << token.text
-            << " line " << token.line
-            << " cols " << token.column << "-" << token.column + token.length
+            << std::string(8 - token.text.length(), ' ') << "line " << token.line
+            << " cols " << token.column << "-" << token.column + token.length - 1
             << " is " << token_type_to_string(token.type)
             << std::endl;
     }
