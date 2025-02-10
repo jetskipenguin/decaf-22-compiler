@@ -3,6 +3,8 @@
 #include <regex>
 #include <string>
 #include <algorithm>
+#include <unistd.h>
+#include <limits.h>  // for PATH_MAX
 #include "Token.h"
 
 // Scan string contents and return vector of tokens
@@ -71,10 +73,16 @@ void print_tokens(const std::vector<Token>& tokens) {
     }
 }
 
-int main() {
-    std::ifstream file("/home/jetskipenguin/C++/decaf-22-compiler/samples/badbool.frag");
+int main(int argc, char* argv[]) {
+
+    if (argc != 2) {
+        std::cerr << "Usage: " << argv[0] << " <input_file>" << std::endl;
+        return 1;
+    }
+
+    std::ifstream file(argv[1]);
     if (!file.is_open()) {
-        std::cerr << "Failed to open badbool.frag" << std::endl;
+        std::cerr << "Failed to open " << argv[1] << std::endl;
         return 1;
     }
 
