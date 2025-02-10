@@ -11,57 +11,92 @@
 std::vector<Token> tokenize(const std::string& content) {
     std::vector<Token> tokens;
 
-    std::vector<std::pair<std::regex, TokenType>> patterns = {
-        {std::regex(R"(\b(void|int|double|string|while|if|else|return|break)\b)"), TokenType::T_Reserved},
-        {std::regex(R"(\b(true|false)\b)"), TokenType::T_BoolConstant},
-        {std::regex(R"([0-9]+\.[0-9]*([Ee][+-]?[0-9]+)?)"), TokenType::T_DoubleConstant},
-        {std::regex(R"([0-9]+)"), TokenType::T_IntConstant},
-        {std::regex(R"(\"[^\"\n]*\")"), TokenType::T_StringConstant},
-        {std::regex(R"(\b[a-zA-Z][a-zA-Z0-9_]*\b)"), TokenType::T_Identifier},
-        {std::regex(R"(\+|-|\*|/|<|>|=|;|,|!|\{|\}|\(|\)|\|\||<=|>=|==)"), TokenType::T_Operator}
-    };
-
-
-    for (const auto& [pattern, type] : patterns) {
-        auto matches_begin = std::sregex_iterator(content.begin(), content.end(), pattern);
-        auto matches_end = std::sregex_iterator();
-
-        for (std::sregex_iterator i = matches_begin; i != matches_end; ++i) {
-            std::smatch match = *i;
-            size_t pos = match.position();
-            
-            size_t line_number = 1 + std::count(content.begin(), content.begin() + pos, '\n');
-            size_t line_start = content.rfind('\n', pos);
-            
-            if (line_start == std::string::npos) {
-                line_start = 0;
-            }
-            else {
-                line_start++;
-            }
-
-            size_t column = pos - line_start + 1;
-
-            tokens.push_back({
-                type,
-                match.str(),
-                static_cast<int>(line_number),
-                static_cast<int>(column),
-                static_cast<int>(match.str().length())
-            });
+    for(int i = 0; i < content.length(); ) {
+        // Skip whitespace
+        if (std::isspace(content[i])) {
+            i++;
+            continue;
         }
+
+        // Identifier
+        if (std::isalpha(content[i]) || content[i] == '_') {
+            int start = i;
+            while (std::isalnum(content[i]) || content[i] == '_') {
+                i++;
+            }
+            int length = i - start;
+            std::string text = content.substr(start, length);
+            tokens.push_back({TokenType::T_Identifier, text, 1, start, length});
+            continue;
+        }
+
+        // Integer constant
+        if (std::isdigit(content[i])) {
+            int start = i;
+            while (std::isdigit(content[i])) {
+                i++;
+                std::cout << "Counting an integer" << std::endl;
+            }
+            int length = i - start;
+            std::string text = content.substr(start, length);
+            tokens.push_back({TokenType::T_IntConstant, text, 1, start, length});
+            continue;
+        }
+
+        // Double constant
+        if (content[i] == '.' && std::isdigit(content[i + 1]) && std::isdigit(content[i - 1])) {
+            int start = i;
+            i++;
+            while (std::isdigit(content[i])) {
+                i++;
+            }
+            int length = i - start;
+            std::string text = content.substr(start, length);
+            tokens.push_back({TokenType::T_DoubleConstant, text, 1, start, length});
+            continue;
+        }
+
+        // String constant
+        if (content[i] == '"') {
+            int start = i;
+            i++;
+            while (content[i] != '"') {
+                i++;
+            }
+            i++;  // Skip closing quote
+            int length = i - start;
+            std::string text = content.substr(start, length);
+            tokens.push_back({TokenType::T_StringConstant, text, 1, start, length});
+            continue;
+        }
+
+        // Boolean constant
+        if (content.substr(i, 4) == "true" || content.substr(i, 5) == "false") {
+            int start = i;
+            i += content[i] == 't' ? 4 : 5;
+            int length = i - start;
+            std::string text = content.substr(start, length);
+            tokens.push_back({TokenType::T_BoolConstant, text, 1, start, length});
+            continue;
+        }
+
+        // Operators
+        if (content[i] == '+' || content[i] == '-' || content[i] == '*' || content[i] == '/' ||
+            content[i] == '=' || content[i] == '<' || content[i] == '>' || content[i] == '!' ||
+            content[i] == '&' || content[i] == '|' || content[i] == '.') {
+            int start = i;
+            i++;
+            int length = 1;
+            std::string text = content.substr(start, length);
+            tokens.push_back({TokenType::T_Operator, text, 1, start, length});
+            continue;
+        }
+
     }
-
-    // Sort tokens by line number
-    std::sort(tokens.begin(), tokens.end(), [](const Token& a, const Token& b) {
-        if (a.line != b.line) {
-            return a.line < b.line;
-        }
-        return a.column < b.column;
-    });
 
     return tokens;
 }
+
 
 void print_tokens(const std::vector<Token>& tokens) {
     for(Token token: tokens) {
@@ -76,7 +111,7 @@ void print_tokens(const std::vector<Token>& tokens) {
 
         std::cout << "line " << token.line
             << " cols " << token.column << "-" << token.column + token.length - 1
-            << " is " << token_type_to_string(token.type)
+            << " is " << token_to_string(token)
             << std::endl;
     }
 }
