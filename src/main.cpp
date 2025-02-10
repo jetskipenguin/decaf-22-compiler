@@ -27,37 +27,61 @@ std::vector<Token> tokenize(const std::string& content) {
             int length = i - start;
             std::string text = content.substr(start, length);
             tokens.push_back({TokenType::T_Identifier, text, 1, start, length});
-            continue;
-        }
-
-        // Integer constant
-        if (std::isdigit(content[i])) {
-            int start = i;
-            while (std::isdigit(content[i])) {
-                i++;
-                std::cout << "Counting an integer" << std::endl;
-            }
-            int length = i - start;
-            std::string text = content.substr(start, length);
-            tokens.push_back({TokenType::T_IntConstant, text, 1, start, length});
+            std::cout << "Found Identifier: " << text << std::endl;
             continue;
         }
 
         // Double constant
-        if (content[i] == '.' && std::isdigit(content[i + 1]) && std::isdigit(content[i - 1])) {
+        if (content[i+1] == '.' && std::isdigit(content[i]) && std::isdigit(content[i + 2])) {
+            int start = i;
+            i++; 
+            // Skip numbers before decimal point
+            while (std::isdigit(content[i])) {
+                i++;
+            }
+            // Skip decimal point
+            i++;
+            // Skip numbers after decimal point
+            while (std::isdigit(content[i])) {
+                i++;
+            }
+
+            int length = i - start;
+            std::string text = content.substr(start, length);
+            tokens.push_back({TokenType::T_DoubleConstant, text, 1, start, length});
+            std::cout << "Found Double Constant: " << text << std::endl;
+            continue;
+        }
+
+        // Operators
+        if (content[i] == '+' || content[i] == '-' || content[i] == '*' || content[i] == '/' ||
+            content[i] == '=' || content[i] == '<' || content[i] == '>' || content[i] == '!' ||
+            content[i] == '&' || content[i] == '|' || content[i] == '.') {
             int start = i;
             i++;
+            int length = 1;
+            std::string text = content.substr(start, length);
+            tokens.push_back({TokenType::T_Operator, text, 1, start, length});
+            std::cout << "Found Operator Constant: " << text << std::endl;
+            continue;
+        }
+
+        // Integer constant
+        if (std::isdigit(content[i]) && (content[i+1] != '.')) {
+            int start = i;
             while (std::isdigit(content[i])) {
                 i++;
             }
             int length = i - start;
             std::string text = content.substr(start, length);
-            tokens.push_back({TokenType::T_DoubleConstant, text, 1, start, length});
+            tokens.push_back({TokenType::T_IntConstant, text, 1, start, length});
+            std::cout << "Found Integer Constant: " << text << std::endl;
             continue;
         }
 
         // String constant
         if (content[i] == '"') {
+            std::cout << "Found String Constant" << std::endl;
             int start = i;
             i++;
             while (content[i] != '"') {
@@ -80,18 +104,7 @@ std::vector<Token> tokenize(const std::string& content) {
             continue;
         }
 
-        // Operators
-        if (content[i] == '+' || content[i] == '-' || content[i] == '*' || content[i] == '/' ||
-            content[i] == '=' || content[i] == '<' || content[i] == '>' || content[i] == '!' ||
-            content[i] == '&' || content[i] == '|' || content[i] == '.') {
-            int start = i;
-            i++;
-            int length = 1;
-            std::string text = content.substr(start, length);
-            tokens.push_back({TokenType::T_Operator, text, 1, start, length});
-            continue;
-        }
-
+        std::cout << "Unknown token at " << i << " text is: " << content[i] << std::endl;
     }
 
     return tokens;
