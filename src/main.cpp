@@ -10,8 +10,15 @@
 // Scan string contents and return vector of tokens
 std::vector<Token> tokenize(const std::string& content) {
     std::vector<Token> tokens;
+    int line = 1;
 
     for(int i = 0; i < content.length(); ) {
+        if(content[i] == '\n') {
+            line++;
+            i++;
+            continue;
+        }
+
         // Skip whitespace
         if (std::isspace(content[i])) {
             i++;
@@ -26,7 +33,7 @@ std::vector<Token> tokenize(const std::string& content) {
             }
             int length = i - start;
             std::string text = content.substr(start, length);
-            tokens.push_back({TokenType::T_Identifier, text, 1, start, length});
+            tokens.push_back({TokenType::T_Identifier, text, line, start, length});
             //std::cout << "Found Identifier: " << text << std::endl;
             continue;
         }
@@ -48,7 +55,7 @@ std::vector<Token> tokenize(const std::string& content) {
 
             int length = i - start;
             std::string text = content.substr(start, length);
-            tokens.push_back({TokenType::T_DoubleConstant, text, 1, start, length});
+            tokens.push_back({TokenType::T_DoubleConstant, text, line, start, length});
             //std::cout << "Found Double Constant: " << text << std::endl;
             continue;
         }
@@ -61,7 +68,7 @@ std::vector<Token> tokenize(const std::string& content) {
             i++;
             int length = 1;
             std::string text = content.substr(start, length);
-            tokens.push_back({TokenType::T_Operator, text, 1, start, length});
+            tokens.push_back({TokenType::T_Operator, text, line, start, length});
             //std::cout << "Found Operator Constant: " << text << std::endl;
             continue;
         }
@@ -74,7 +81,7 @@ std::vector<Token> tokenize(const std::string& content) {
             }
             int length = i - start;
             std::string text = content.substr(start, length);
-            tokens.push_back({TokenType::T_IntConstant, text, 1, start, length});
+            tokens.push_back({TokenType::T_IntConstant, text, line, start, length});
             //std::cout << "Found Integer Constant: " << text << std::endl;
             continue;
         }
@@ -90,7 +97,7 @@ std::vector<Token> tokenize(const std::string& content) {
             i++;  // Skip closing quote
             int length = i - start;
             std::string text = content.substr(start, length);
-            tokens.push_back({TokenType::T_StringConstant, text, 1, start, length});
+            tokens.push_back({TokenType::T_StringConstant, text, line, start, length});
             continue;
         }
 
@@ -100,12 +107,12 @@ std::vector<Token> tokenize(const std::string& content) {
             i += content[i] == 't' ? 4 : 5;
             int length = i - start;
             std::string text = content.substr(start, length);
-            tokens.push_back({TokenType::T_BoolConstant, text, 1, start, length});
+            tokens.push_back({TokenType::T_BoolConstant, text, line, start, length});
             continue;
         }
         
-        tokens.push_back({TokenType::T_Unknown, content.substr(i, 1), 1, i, 1});
-        std::cout << "Unknown token at " << i << " text is: " << content[i] << std::endl;
+        tokens.push_back({TokenType::T_Unknown, content.substr(i, 1), line, i, 1});
+        //std::cout << "Unknown token at " << i << " text is: " << content[i] << std::endl;
         i++;
     }
 
@@ -115,7 +122,10 @@ std::vector<Token> tokenize(const std::string& content) {
 
 void print_tokens(const std::vector<Token>& tokens) {
     for(Token token: tokens) {
-        std::cout << token.text;
+        if(token.type != TokenType::T_Unknown) {
+            std::cout << token.text;
+        }
+
         // Only add padding if text is shorter than 8 characters
         if (token.text.length() < 8) {
             std::cout << std::string(8 - token.text.length(), ' ');
@@ -123,11 +133,16 @@ void print_tokens(const std::vector<Token>& tokens) {
             std::cout << ' ';  // Single space for long tokens
         }
 
-
-        std::cout << "line " << token.line
+        if(token.type == TokenType::T_Unknown) {
+            std::cout << std::endl << "*** Error line " << token.line << "." << std::endl
+            << "*** Unrecognized char: \'" << token.text << "\'" << std::endl << std::endl;
+        }
+        else {
+            std::cout << "line " << token.line
             << " cols " << token.column << "-" << token.column + token.length - 1
             << " is " << token_to_string(token)
             << std::endl;
+        }
     }
 }
 
