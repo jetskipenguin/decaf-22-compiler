@@ -8,7 +8,8 @@ enum class TokenType {
     T_StringConstant,
     T_BoolConstant,
     T_Operator,
-    T_Reserved
+    T_Reserved,
+    T_Unknown
 };
 
 struct Token {

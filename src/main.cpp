@@ -27,7 +27,7 @@ std::vector<Token> tokenize(const std::string& content) {
             int length = i - start;
             std::string text = content.substr(start, length);
             tokens.push_back({TokenType::T_Identifier, text, 1, start, length});
-            std::cout << "Found Identifier: " << text << std::endl;
+            //std::cout << "Found Identifier: " << text << std::endl;
             continue;
         }
 
@@ -49,20 +49,20 @@ std::vector<Token> tokenize(const std::string& content) {
             int length = i - start;
             std::string text = content.substr(start, length);
             tokens.push_back({TokenType::T_DoubleConstant, text, 1, start, length});
-            std::cout << "Found Double Constant: " << text << std::endl;
+            //std::cout << "Found Double Constant: " << text << std::endl;
             continue;
         }
 
         // Operators
         if (content[i] == '+' || content[i] == '-' || content[i] == '*' || content[i] == '/' ||
             content[i] == '=' || content[i] == '<' || content[i] == '>' || content[i] == '!' ||
-            content[i] == '&' || content[i] == '|' || content[i] == '.') {
+            content[i] == '|' || content[i] == '.') {
             int start = i;
             i++;
             int length = 1;
             std::string text = content.substr(start, length);
             tokens.push_back({TokenType::T_Operator, text, 1, start, length});
-            std::cout << "Found Operator Constant: " << text << std::endl;
+            //std::cout << "Found Operator Constant: " << text << std::endl;
             continue;
         }
 
@@ -75,7 +75,7 @@ std::vector<Token> tokenize(const std::string& content) {
             int length = i - start;
             std::string text = content.substr(start, length);
             tokens.push_back({TokenType::T_IntConstant, text, 1, start, length});
-            std::cout << "Found Integer Constant: " << text << std::endl;
+            //std::cout << "Found Integer Constant: " << text << std::endl;
             continue;
         }
 
@@ -103,8 +103,10 @@ std::vector<Token> tokenize(const std::string& content) {
             tokens.push_back({TokenType::T_BoolConstant, text, 1, start, length});
             continue;
         }
-
+        
+        tokens.push_back({TokenType::T_Unknown, content.substr(i, 1), 1, i, 1});
         std::cout << "Unknown token at " << i << " text is: " << content[i] << std::endl;
+        i++;
     }
 
     return tokens;
