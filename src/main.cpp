@@ -15,14 +15,15 @@ std::vector<Token> tokenize(const std::string& content) {
     std::vector<std::pair<boost::regex, TokenType>> patterns = {
         {boost::regex(R"(\b(void|int|double|string|while|if|else|return|break)\b)"), TokenType::T_Reserved},
         {boost::regex(R"(\b(true|false)\b)"), TokenType::T_BoolConstant},
-        {boost::regex(R"([0-9]+\.[0-9]*([Ee][+-]?[0-9]+)?)"), TokenType::T_DoubleConstant},
-        {boost::regex(R"([0-9]+)"), TokenType::T_IntConstant},
+        {boost::regex(R"([0-9]+\.[0-9]*(?:[Ee][+-]?[0-9]+)?)"), TokenType::T_DoubleConstant},
+        {boost::regex(R"(\b[0-9]+\b)"), TokenType::T_IntConstant},
         {boost::regex(R"(\"[^\"\n]*\")"), TokenType::T_StringConstant},
-        {boost::regex(R"(\b[a-zA-Z][a-zA-Z0-9_]*\b)"), TokenType::T_Identifier},
-        {boost::regex(R"((?<![0-9])\.|[\+\-\*\/\<\>\=\;\,\!\{\}\(\)]|\|\||<=|>=|==)"), TokenType::T_Operator}
+        {boost::regex(R"([a-zA-Z][a-zA-Z0-9_]*)"), TokenType::T_Identifier},
+        {boost::regex(R"([\.])"), TokenType::T_Operator},
+        {boost::regex(R"([\+])"), TokenType::T_Operator},
+        {boost::regex(R"([\-])"), TokenType::T_Operator},
+        {boost::regex(R"([*/<=>;,!{}()])"), TokenType::T_Operator}
     };
-
-
 
     for (const auto& [pattern, type] : patterns) {
         boost::sregex_iterator matches_begin(content.begin(), content.end(), pattern);
