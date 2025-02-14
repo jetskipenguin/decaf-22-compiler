@@ -17,20 +17,19 @@ enum class ErrorType {
     E_UnknownToken
 };
 
+struct Error {
+    ErrorType type;
+    std::string message;
+};
+
 struct Token {
     TokenType type;
     std::string text;
     int line;
     int column;
     int length;
-    Error error_type;
+    Error error;
 };
-
-struct Error {
-    ErrorType type;
-    std::string message;
-};
-
 
 std::string token_to_string(Token token) {
     switch (token.type) {
