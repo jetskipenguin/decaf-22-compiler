@@ -11,17 +11,20 @@
 std::vector<Token> tokenize(const std::string& content) {
     std::vector<Token> tokens;
     int line = 1;
+    int column = 1;
 
     for(int i = 0; i < content.length(); ) {
         if(content[i] == '\n') {
             line++;
             i++;
+            column = 1;
             continue;
         }
 
         // Skip whitespace
         if (std::isspace(content[i])) {
             i++;
+            column++;
             continue;
         }
 
@@ -30,10 +33,11 @@ std::vector<Token> tokenize(const std::string& content) {
             int start = i;
             while (std::isalnum(content[i]) || content[i] == '_') {
                 i++;
+                column++;
             }
             int length = i - start;
             std::string text = content.substr(start, length);
-            tokens.push_back({TokenType::T_Identifier, text, line, start, length});
+            tokens.push_back({TokenType::T_Identifier, text, line, column-length, length});
             //std::cout << "Found Identifier: " << text << std::endl;
             continue;
         }
@@ -42,20 +46,24 @@ std::vector<Token> tokenize(const std::string& content) {
         if (content[i+1] == '.' && std::isdigit(content[i]) && std::isdigit(content[i + 2])) {
             int start = i;
             i++; 
+            column++;
             // Skip numbers before decimal point
             while (std::isdigit(content[i])) {
                 i++;
+                column++;
             }
             // Skip decimal point
             i++;
+            column++;
             // Skip numbers after decimal point
             while (std::isdigit(content[i])) {
                 i++;
+                column++;
             }
 
             int length = i - start;
             std::string text = content.substr(start, length);
-            tokens.push_back({TokenType::T_DoubleConstant, text, line, start, length});
+            tokens.push_back({TokenType::T_DoubleConstant, text, line, column-length, length});
             //std::cout << "Found Double Constant: " << text << std::endl;
             continue;
         }
@@ -66,9 +74,10 @@ std::vector<Token> tokenize(const std::string& content) {
             content[i] == '|' || content[i] == '.') {
             int start = i;
             i++;
+            column++;
             int length = 1;
             std::string text = content.substr(start, length);
-            tokens.push_back({TokenType::T_Operator, text, line, start, length});
+            tokens.push_back({TokenType::T_Operator, text, line, column-length, length});
             //std::cout << "Found Operator Constant: " << text << std::endl;
             continue;
         }
@@ -78,10 +87,11 @@ std::vector<Token> tokenize(const std::string& content) {
             int start = i;
             while (std::isdigit(content[i])) {
                 i++;
+                column++;
             }
             int length = i - start;
             std::string text = content.substr(start, length);
-            tokens.push_back({TokenType::T_IntConstant, text, line, start, length});
+            tokens.push_back({TokenType::T_IntConstant, text, line, column-length, length});
             //std::cout << "Found Integer Constant: " << text << std::endl;
             continue;
         }
@@ -91,13 +101,16 @@ std::vector<Token> tokenize(const std::string& content) {
             std::cout << "Found String Constant" << std::endl;
             int start = i;
             i++;
+            column++;
             while (content[i] != '"') {
                 i++;
+                column++;
             }
             i++;  // Skip closing quote
+            column++;
             int length = i - start;
             std::string text = content.substr(start, length);
-            tokens.push_back({TokenType::T_StringConstant, text, line, start, length});
+            tokens.push_back({TokenType::T_StringConstant, text, line, column-length, length});
             continue;
         }
 
@@ -105,15 +118,17 @@ std::vector<Token> tokenize(const std::string& content) {
         if (content.substr(i, 4) == "true" || content.substr(i, 5) == "false") {
             int start = i;
             i += content[i] == 't' ? 4 : 5;
+            column += content[i] == 't' ? 4 : 5;
             int length = i - start;
             std::string text = content.substr(start, length);
-            tokens.push_back({TokenType::T_BoolConstant, text, line, start, length});
+            tokens.push_back({TokenType::T_BoolConstant, text, line,column-length, length});
             continue;
         }
         
         tokens.push_back({TokenType::T_Unknown, content.substr(i, 1), line, i, 1});
         //std::cout << "Unknown token at " << i << " text is: " << content[i] << std::endl;
         i++;
+        column++;
     }
 
     return tokens;

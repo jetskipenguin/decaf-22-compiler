@@ -1,2 +1,2 @@
 cmake --build build
-./build/decafe-22-compiler samples/baddouble.frag
+./build/decafe-22-compiler samples/badbool.frag
