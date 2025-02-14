@@ -107,7 +107,7 @@ std::vector<Token> tokenize(const std::string& content) {
 
         // String constant
         if (content[i] == '"') {
-            std::cout << "Found String Constant" << std::endl;
+            //std::cout << "Found String Constant" << std::endl;
             int start = i;
             i++;
             column++;
@@ -147,19 +147,20 @@ std::vector<Token> tokenize(const std::string& content) {
 
 void print_tokens(const std::vector<Token>& tokens) {
     for(Token token: tokens) {
+        if(token.type == TokenType::T_Identifier && !token.error.message.empty()) {
+            if(token.error.type == ErrorType::E_IdentifierTooLong) 
+            {
+                std::cout << std::endl << "*** Error line " << token.line << "." << std::endl
+                << "*** " << token.error.message << std::endl << std::endl; 
 
-        if(token.type == TokenType::T_Identifier && token.error.type == ErrorType::E_IdentifierTooLong) {
-            std::cout << std::endl << std::endl << "*** Error line " << token.line << "." << std::endl
-            << "*** " << token.error.message << std::endl << std::endl; 
+                // Truncate identifier to max length
+                std::string truncated = token.text.substr(0, MAX_IDENTIFIER_LENGTH);
+                std::cout <<  token.text << " line " << token.line
+                << " cols " << token.column << "-" << token.column + token.length - 1
+                << " is T_Identifier (truncated to " << truncated << ")" << std::endl;
 
-            // Truncate identifier to max length
-            std::string truncated = token.text.substr(0, MAX_IDENTIFIER_LENGTH);
-            std::cout <<  "line " << token.line
-            << " cols " << token.column << "-" << token.column + token.length - 1
-            << " is " << truncated
-            << std::endl;
-
-            continue;
+                continue;
+            }
         }
 
         if(token.type != TokenType::T_Unknown) {
@@ -176,13 +177,13 @@ void print_tokens(const std::vector<Token>& tokens) {
         if(token.type == TokenType::T_Unknown) {
             std::cout << std::endl << "*** Error line " << token.line << "." << std::endl
             << "*** Unrecognized char: \'" << token.text << "\'" << std::endl << std::endl;
+            continue;
         }
-        else {
-            std::cout << "line " << token.line
+        
+        std::cout << "line " << token.line
             << " cols " << token.column << "-" << token.column + token.length - 1
             << " is " << token_to_string(token)
             << std::endl;
-        }
     }
 }
 
