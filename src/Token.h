@@ -12,13 +12,25 @@ enum class TokenType {
     T_Unknown
 };
 
+enum class ErrorType {
+    E_IdentifierTooLong,
+    E_UnknownToken
+};
+
 struct Token {
     TokenType type;
     std::string text;
     int line;
     int column;
     int length;
-}; 
+    Error error_type;
+};
+
+struct Error {
+    ErrorType type;
+    std::string message;
+};
+
 
 std::string token_to_string(Token token) {
     switch (token.type) {

@@ -7,6 +7,8 @@
 #include <limits.h>
 #include "Token.h"
 
+#define MAX_IDENTIFIER_LENGTH 31
+
 // Scan string contents and return vector of tokens
 std::vector<Token> tokenize(const std::string& content) {
     std::vector<Token> tokens;
@@ -37,7 +39,13 @@ std::vector<Token> tokenize(const std::string& content) {
             }
             int length = i - start;
             std::string text = content.substr(start, length);
-            tokens.push_back({TokenType::T_Identifier, text, line, column-length, length});
+
+            if(length > MAX_IDENTIFIER_LENGTH) {
+                tokens.push_back({TokenType::T_Identifier, text, line, column-length, length, "Identifier too long: \"" + text + "\""}); 
+            }
+            else {
+                tokens.push_back({TokenType::T_Identifier, text, line, column-length, length});
+            }
             //std::cout << "Found Identifier: " << text << std::endl;
             continue;
         }
@@ -137,6 +145,21 @@ std::vector<Token> tokenize(const std::string& content) {
 
 void print_tokens(const std::vector<Token>& tokens) {
     for(Token token: tokens) {
+
+        if(token.type == TokenType::T_Identifier && token.error_message != "") {
+            std::cout << std::endl << std::endl << "*** Error line " << token.line << "." << std::endl
+            << "*** " << token.error_message << std::endl << std::endl; 
+
+            // Truncate identifier to max length
+            std::string truncated = token.text.substr(0, MAX_IDENTIFIER_LENGTH);
+            std::cout <<  "line " << token.line
+            << " cols " << token.column << "-" << token.column + token.length - 1
+            << " is " << truncated
+            << std::endl;
+
+            continue;
+        }
+
         if(token.type != TokenType::T_Unknown) {
             std::cout << token.text;
         }
