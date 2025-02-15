@@ -5,7 +5,16 @@
 #define MAX_IDENTIFIER_LENGTH 31
 
 bool Scanner::check_for_reserve_op(const std::string& content, const std::string& token, const TokenType& type) {
-    if(content.substr(this->i, token.size()) == token) {
+    if (content.substr(this->i, token.size()) == token) {
+        // Check if the next character is NOT alphanumeric or underscore
+        int next_char_index = this->i + token.size();
+        if (next_char_index < content.size()) {
+            char next_char = content[next_char_index];
+            if (std::isalnum(next_char) || next_char == '_') {
+                return false; // It's part of a larger identifier
+            }
+        }
+
         Token t = {type, token, line, column, token.size()};
         tokens.push_back(t);
         column += token.size();
