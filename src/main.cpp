@@ -5,167 +5,9 @@
 #include <algorithm>
 #include <unistd.h>
 #include <limits.h>
-#include "Token.h"
+#include "Scanner.h"
 
 #define MAX_IDENTIFIER_LENGTH 31
-
-// Scan string contents and return vector of tokens
-std::vector<Token> tokenize(const std::string& content) {
-    std::vector<Token> tokens;
-    int line = 1;
-    int column = 1;
-
-    for(int i = 0; i < content.length(); ) {
-        if(content[i] == '\n') {
-            line++;
-            i++;
-            column = 1;
-            continue;
-        }
-
-        // Skip whitespace
-        if (std::isspace(content[i])) {
-            i++;
-            column++;
-            continue;
-        }
-
-        // Operators
-        if (content[i] == '+' || content[i] == '-' || content[i] == '*' || content[i] == '/' ||
-            content[i] == '=' || content[i] == '<' || content[i] == '>' || content[i] == '!' ||
-            content[i] == '|' || content[i] == '.') {
-            int start = i;
-            i++;
-            column++;
-            int length = 1;
-            std::string text = content.substr(start, length);
-            tokens.push_back({TokenType::T_Operator, text, line, column-length, length});
-            continue;
-        }
-
-        if(content.substr(i, 4) == "void") {
-            tokens.push_back({TokenType::T_Void, "void", line, column, 4});
-            column += 4;
-            i += 4;
-            continue;
-        }
-
-        if(content.substr(i, 3) == "int") {
-            tokens.push_back({TokenType::T_Int, "int", line, column, 3});
-            column += 3;
-            i += 3;
-            continue;
-        }
-
-
-        // Identifier
-        if (std::isalpha(content[i]) || content[i] == '_') {
-            int start = i;
-            while (std::isalnum(content[i]) || content[i] == '_') {
-                i++;
-                column++;
-            }
-            int length = i - start;
-            std::string text = content.substr(start, length);
-
-            if(length > MAX_IDENTIFIER_LENGTH) {
-                Error error = {ErrorType::E_IdentifierTooLong, "Identifier too long: \"" + text + "\""};
-                tokens.push_back({TokenType::T_Identifier, text, line, column-length, length, error}); 
-            }
-            else {
-                tokens.push_back({TokenType::T_Identifier, text, line, column-length, length});
-            }
-            //std::cout << "Found Identifier: " << text << std::endl;
-            continue;
-        }
-
-        // Double constant
-        if (content[i+1] == '.' && std::isdigit(content[i]) && std::isdigit(content[i + 2])) {
-            int start = i;
-            i++; 
-            column++;
-            // Skip numbers before decimal point
-            while (std::isdigit(content[i])) {
-                i++;
-                column++;
-            }
-            // Skip decimal point
-            i++;
-            column++;
-            // Skip numbers after decimal point
-            while (std::isdigit(content[i])) {
-                i++;
-                column++;
-            }
-
-            int length = i - start;
-            std::string text = content.substr(start, length);
-            tokens.push_back({TokenType::T_DoubleConstant, text, line, column-length, length});
-            //std::cout << "Found Double Constant: " << text << std::endl;
-            continue;
-        }
-
-        // Integer constant
-        if (std::isdigit(content[i]) && (content[i+1] != '.')) {
-            int start = i;
-            while (std::isdigit(content[i])) {
-                i++;
-                column++;
-            }
-            int length = i - start;
-            std::string text = content.substr(start, length);
-            tokens.push_back({TokenType::T_IntConstant, text, line, column-length, length});
-            //std::cout << "Found Integer Constant: " << text << std::endl;
-            continue;
-        }
-
-        // String constant
-        if (content[i] == '"') {
-            //std::cout << "Found String Constant" << std::endl;
-            int start = i;
-            i++;
-            column++;
-            
-            while (content[i] != '"' && content[i] != '\n') {
-                i++;
-                column++;
-            }
-
-            // Strings must terminate on same line as they started
-            Error error = {};
-            if(content[i] == '\n') {
-                error.type = ErrorType::E_UnterminatedString;
-                error.message = "Unterminated string constant";
-            }
-
-            i++;  // Skip closing quote or newline
-            column++;
-            int length = i - start;
-            std::string text = content.substr(start, length);
-            tokens.push_back({TokenType::T_StringConstant, text, line, column-length, length, error});
-            continue;
-        }
-
-        // Boolean constant
-        if (content.substr(i, 4) == "true" || content.substr(i, 5) == "false") {
-            int start = i;
-            i += content[i] == 't' ? 4 : 5;
-            column += content[i] == 't' ? 4 : 5;
-            int length = i - start;
-            std::string text = content.substr(start, length);
-            tokens.push_back({TokenType::T_BoolConstant, text, line,column-length, length});
-            continue;
-        }
-        
-        Error error = {ErrorType::E_UnknownToken, "Unknown token: \"" + content.substr(i, 1) + "\""};
-        tokens.push_back({TokenType::T_Unknown, content.substr(i, 1), line, i, 1, error});
-        //std::cout << "Unknown token at " << i << " text is: " << content[i] << std::endl;
-        i++;
-        column++;
-    }
-
-    return tokens;
-}
 
 void print_token_error(const Token& token) {
 
@@ -244,8 +86,9 @@ int main(int argc, char* argv[]) {
         content += line + "\n";
     }
     file.close();
-
-    auto tokens = tokenize(content);
+    
+    Scanner scanner;
+    auto tokens = scanner.tokenize(content);
 
     print_tokens(tokens);
 
