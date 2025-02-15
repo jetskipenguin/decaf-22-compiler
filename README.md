@@ -5,8 +5,7 @@ Project for UTSA Programming Languages and Compilers
 ## Build Instructions
 
 ```
-cmake -B build
-cmake --build build
+./build/compile.sh
 ```
 
 ## Run Instructions

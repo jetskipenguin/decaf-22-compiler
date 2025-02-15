@@ -1,8 +1,7 @@
 #!/bin/bash
 
 # Build the project
-cmake -B build
-cmake --build build
+./build/compile.sh
 
 # Check if build succeeded
 if [ $? -ne 0 ]; then
@@ -21,7 +20,7 @@ for frag_file in samples/*.frag; do
     echo "Testing $frag_file..."
     
     # Run the program and capture output
-    ./build/decafe-22-compiler "$frag_file" > "temp.out"
+    ./build/decaf-22-compiler "$frag_file" > "temp.out"
     
     # Compare with expected output
     if diff -w "temp.out" "$out_file" > /dev/null; then
