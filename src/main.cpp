@@ -30,6 +30,34 @@ std::vector<Token> tokenize(const std::string& content) {
             continue;
         }
 
+        // Operators
+        if (content[i] == '+' || content[i] == '-' || content[i] == '*' || content[i] == '/' ||
+            content[i] == '=' || content[i] == '<' || content[i] == '>' || content[i] == '!' ||
+            content[i] == '|' || content[i] == '.') {
+            int start = i;
+            i++;
+            column++;
+            int length = 1;
+            std::string text = content.substr(start, length);
+            tokens.push_back({TokenType::T_Operator, text, line, column-length, length});
+            continue;
+        }
+
+        if(content.substr(i, 4) == "void") {
+            tokens.push_back({TokenType::T_Void, "void", line, column, 4});
+            column += 4;
+            i += 4;
+            continue;
+        }
+
+        if(content.substr(i, 3) == "int") {
+            tokens.push_back({TokenType::T_Int, "int", line, column, 3});
+            column += 3;
+            i += 3;
+            continue;
+        }
+
+
         // Identifier
         if (std::isalpha(content[i]) || content[i] == '_') {
             int start = i;
@@ -74,20 +102,6 @@ std::vector<Token> tokenize(const std::string& content) {
             std::string text = content.substr(start, length);
             tokens.push_back({TokenType::T_DoubleConstant, text, line, column-length, length});
             //std::cout << "Found Double Constant: " << text << std::endl;
-            continue;
-        }
-
-        // Operators
-        if (content[i] == '+' || content[i] == '-' || content[i] == '*' || content[i] == '/' ||
-            content[i] == '=' || content[i] == '<' || content[i] == '>' || content[i] == '!' ||
-            content[i] == '|' || content[i] == '.') {
-            int start = i;
-            i++;
-            column++;
-            int length = 1;
-            std::string text = content.substr(start, length);
-            tokens.push_back({TokenType::T_Operator, text, line, column-length, length});
-            //std::cout << "Found Operator Constant: " << text << std::endl;
             continue;
         }
 
