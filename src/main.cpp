@@ -167,11 +167,12 @@ void print_tokens(const std::vector<Token>& tokens) {
             std::cout << token.text;
         }
 
-        // Only add padding if text is shorter than 8 characters
-        if (token.text.length() < 8) {
-            std::cout << std::string(8 - token.text.length(), ' ');
+        // Add whitespace padding
+        int padding = 13 - token.text.length(); // 13 based on longest string in string.out
+        if (padding > 0) {
+            std::cout << std::string(padding, ' ');
         } else {
-            std::cout << ' ';  // Single space for long tokens
+            std::cout << ' ';  // Single space if text is longer
         }
 
         if(token.type == TokenType::T_Unknown) {

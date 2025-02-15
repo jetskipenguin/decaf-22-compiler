@@ -36,7 +36,7 @@ std::string token_to_string(Token token) {
         case TokenType::T_Identifier: return "T_Identifier";
         case TokenType::T_IntConstant: return "T_IntConstant (value = " + token.text + ")";
         case TokenType::T_DoubleConstant: return "T_DoubleConstant (value = " + token.text + ")";
-        case TokenType::T_StringConstant: return "T_StringConstant";
+        case TokenType::T_StringConstant: return "T_StringConstant (value = " + token.text + ")";
         case TokenType::T_BoolConstant: return "T_BoolConstant";
         case TokenType::T_Operator: return "\'" + token.text + "\'";
         case TokenType::T_Reserved: return "T_Reserved";
