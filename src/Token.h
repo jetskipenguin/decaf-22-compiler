@@ -14,6 +14,7 @@ enum class TokenType {
 
 enum class ErrorType {
     E_IdentifierTooLong,
+    E_UnterminatedString,
     E_UnknownToken
 };
 

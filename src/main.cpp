@@ -111,15 +111,24 @@ std::vector<Token> tokenize(const std::string& content) {
             int start = i;
             i++;
             column++;
-            while (content[i] != '"') {
+            
+            while (content[i] != '"' && content[i] != '\n') {
                 i++;
                 column++;
             }
-            i++;  // Skip closing quote
+
+            // Strings must terminate on same line as they started
+            Error error = {};
+            if(content[i] == '\n') {
+                error.type = ErrorType::E_UnterminatedString;
+                error.message = "Unterminated string constant";
+            }
+
+            i++;  // Skip closing quote or newline
             column++;
             int length = i - start;
             std::string text = content.substr(start, length);
-            tokens.push_back({TokenType::T_StringConstant, text, line, column-length, length});
+            tokens.push_back({TokenType::T_StringConstant, text, line, column-length, length, error});
             continue;
         }
 
@@ -144,25 +153,39 @@ std::vector<Token> tokenize(const std::string& content) {
     return tokens;
 }
 
+void print_token_error(const Token& token) {
+
+    if(token.error.type == ErrorType::E_IdentifierTooLong) 
+    {
+        std::cout << std::endl << "*** Error line " << token.line << "." << std::endl
+        << "*** " << token.error.message << std::endl << std::endl; 
+
+        // Truncate identifier to max length
+        std::string truncated = token.text.substr(0, MAX_IDENTIFIER_LENGTH);
+        std::cout <<  token.text << " line " << token.line
+        << " cols " << token.column << "-" << token.column + token.length - 1
+        << " is T_Identifier (truncated to " << truncated << ")" << std::endl;
+
+        return;
+    }
+
+    if(token.error.type == ErrorType::E_UnterminatedString)
+    {
+        std::cout << std::endl << "*** Error line " << token.line << "." << std::endl
+        << "*** " << token.error.message << ": " << token.text << std::endl; 
+        return;
+    }
+}
+
 
 void print_tokens(const std::vector<Token>& tokens) {
     for(Token token: tokens) {
-        if(token.type == TokenType::T_Identifier && !token.error.message.empty()) {
-            if(token.error.type == ErrorType::E_IdentifierTooLong) 
-            {
-                std::cout << std::endl << "*** Error line " << token.line << "." << std::endl
-                << "*** " << token.error.message << std::endl << std::endl; 
 
-                // Truncate identifier to max length
-                std::string truncated = token.text.substr(0, MAX_IDENTIFIER_LENGTH);
-                std::cout <<  token.text << " line " << token.line
-                << " cols " << token.column << "-" << token.column + token.length - 1
-                << " is T_Identifier (truncated to " << truncated << ")" << std::endl;
-
-                continue;
-            }
-        }
-
+        if(!token.error.message.empty()) {
+           print_token_error(token);
+           continue;
+        }  
+        
         if(token.type != TokenType::T_Unknown) {
             std::cout << token.text;
         }
