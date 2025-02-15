@@ -181,7 +181,7 @@ void print_token_error(const Token& token) {
 void print_tokens(const std::vector<Token>& tokens) {
     for(Token token: tokens) {
 
-        if(!token.error.message.empty()) {
+        if(!token.error.message.empty() && token.type != TokenType::T_Unknown) {
            print_token_error(token);
            continue;
         }  
