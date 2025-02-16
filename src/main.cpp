@@ -26,18 +26,24 @@ void print_token_error(const Token& token) {
         return;
     }
 
-    if(token.error.type == ErrorType::E_UnterminatedString || token.error.type == ErrorType::E_InvalidDirective)
+    if(token.error.type == ErrorType::E_UnterminatedString)
     {
         std::cout << std::endl << "*** Error line " << token.line << "." << std::endl
         << "*** " << token.error.message << ": " << token.text << std::endl; 
         return;
     }
+
+    if(token.error.type == ErrorType::E_InvalidDirective) 
+    {
+        std::cout << std::endl << "*** Error line " << token.line << "." << std::endl
+        << "*** " << token.error.message << std::endl << std::endl; 
+        return;
+    }    
 }
 
 
 void print_tokens(const std::vector<Token>& tokens) {
     for(Token token: tokens) {
-
         if(!token.error.message.empty()) {
             if(token.error.type != ErrorType::E_UnknownToken) {
                 print_token_error(token);

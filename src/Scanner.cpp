@@ -254,13 +254,17 @@ std::vector<Token> Scanner::tokenize(const std::string& content) {
         // Ignore directives
         if (content[i] == '#') {
             int start = i;
+            i++;
+            column++;
             while(content[i] != '\n') {
                 i++;
                 column++;
-                line++;
             }
+            int length = i - start; 
+            std::string directive_text = content.substr(start, length);
             Error error = {ErrorType::E_InvalidDirective, "Invalid # directive"};
-            tokens.push_back({TokenType::T_Unknown, content.substr(start, i), line-1, start, start-i, error});
+            tokens.push_back({TokenType::T_Unknown, directive_text, line, start, length, error});
+            continue;
         }
         
         Error error = {ErrorType::E_UnknownToken, "Unknown token: \"" + content.substr(i, 1) + "\""};
