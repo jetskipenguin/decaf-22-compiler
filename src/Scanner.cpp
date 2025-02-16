@@ -220,6 +220,8 @@ std::vector<Token> Scanner::tokenize(const std::string& content) {
         // String constant
         if (content[i] == '"') {
             int start = i;
+            int start_line = line;
+            int start_column = column;
             i++;
             column++;
             
@@ -233,13 +235,17 @@ std::vector<Token> Scanner::tokenize(const std::string& content) {
             if(content[i] == '\n') {
                 error.type = ErrorType::E_UnterminatedString;
                 error.message = "Unterminated string constant";
+                line++;
+                column = 1;
             }
 
             i++;  // Skip closing quote or newline
             column++;
             int length = i - start;
             std::string text = content.substr(start, length);
-            tokens.push_back({TokenType::T_StringConstant, text, line, column-length, length, error});
+
+            // Subtract 1 from length and start_line to ignore
+            tokens.push_back({TokenType::T_StringConstant, text, start_line, start_column, length, error});
             continue;
         }
         
