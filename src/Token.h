@@ -1,5 +1,8 @@
 #pragma once
 #include <string>
+#include <cmath>
+#include <iostream>
+#include <sstream>
 
 enum class TokenType {
     T_Identifier,
@@ -44,11 +47,76 @@ struct Token {
     Error error;
 };
 
+
+inline double convert_scientific_not_to_double(const std::string& double_str) {
+    size_t e_pos = double_str.find('E');
+    if (e_pos == std::string::npos) {
+        return std::stod(double_str);
+    }
+
+    std::string base_str = double_str.substr(0, e_pos);
+    double base = std::stod(base_str);
+
+    std::string exponent_str = double_str.substr(e_pos + 1);
+    int exponent = std::stoi(exponent_str);
+
+    return base * pow(10, exponent);
+}
+
+inline std::string convert_double_to_str(const double& num) {
+    std::stringstream ss;
+    ss << std::fixed << num;
+    std::string str = ss.str();
+
+    // Remove trailing zeros after the decimal point
+    size_t decimal_pos = str.find('.');
+    if (decimal_pos != std::string::npos) {
+        size_t last_non_zero = str.find_last_not_of('0');
+        if (last_non_zero != std::string::npos && last_non_zero > decimal_pos) {
+            str.erase(last_non_zero + 1);
+        } else if (last_non_zero == decimal_pos) {
+            str.erase(decimal_pos); // Remove decimal point if no digits after it
+        }
+    }
+
+    // Remove leading zeros before the decimal point, but leave one 0 if the number is between -1 and 1 exclusive
+    if(decimal_pos != std::string::npos) {
+        size_t first_non_zero = str.find_first_not_of('0');
+        if(first_non_zero != std::string::npos && first_non_zero < decimal_pos) {
+            if(first_non_zero > 0 || str[0] == '-')
+                str.erase(0, first_non_zero);
+            else
+                str.erase(0, first_non_zero);
+        }
+    }
+    else {
+        size_t first_non_zero = str.find_first_not_of('0');
+        if(first_non_zero != std::string::npos) {
+            if(first_non_zero > 0 || str[0] == '-')
+                str.erase(0, first_non_zero);
+            else
+                str.erase(0, first_non_zero);
+        }
+    }
+    
+    return str;
+}
+
+inline std::string remove_leading_zeros(const std::string& str) {
+    size_t first_non_zero = str.find_first_not_of('0');
+    if (first_non_zero == std::string::npos) {
+        return "0";
+    }
+    return str.substr(first_non_zero);
+}
+
+
+
 inline std::string token_to_string(Token token) {
     switch (token.type) {
         case TokenType::T_Identifier: return "T_Identifier";
-        case TokenType::T_IntConstant: return "T_IntConstant (value = " + token.text + ")";
-        case TokenType::T_DoubleConstant: return "T_DoubleConstant (value = " + token.text + ")";
+        case TokenType::T_IntConstant: return "T_IntConstant (value = " + remove_leading_zeros(token.text) + ")";
+        case TokenType::T_DoubleConstant: return "T_DoubleConstant (value = " + convert_double_to_str(convert_scientific_not_to_double(token.text)) + ")";
         case TokenType::T_StringConstant: return "T_StringConstant (value = " + token.text + ")";
         case TokenType::T_BoolConstant: return "T_BoolConstant (value = " + token.text + ")";
         case TokenType::T_Operator: return "\'" + token.text + "\'";
