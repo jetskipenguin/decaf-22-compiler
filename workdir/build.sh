@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # Set output binary name
-OUTPUT="build/decaf-22-compiler"
+OUTPUT="decaf-22-compiler"
 
 # Find all .cpp files in the current directory
-CPP_FILES=$(find src -type f -name "*.cpp")
+CPP_FILES=$(find ../src -type f -name "*.cpp")
 
 # Check if any .cpp files were found
 if [ -z "$CPP_FILES" ]; then

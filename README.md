@@ -5,11 +5,13 @@ Project for UTSA Programming Languages and Compilers
 ## Build Instructions
 
 ```
-./build/compile.sh
+cd workdir
+./build.sh
 ```
 
 ## Run Instructions
 
 ```
-./build/decafe-22-compiler
+cd workdir
+./exec.sh <path to decaf-22 source code>
 ```

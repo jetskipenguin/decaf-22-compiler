@@ -1,7 +1,9 @@
 #!/bin/bash
 
 # Build the project
-./build/compile.sh
+cd workdir
+./build.sh
+cd ..
 
 # Check if build succeeded
 if [ $? -ne 0 ]; then
@@ -20,7 +22,7 @@ for frag_file in samples/*.frag; do
     echo "Testing $frag_file..."
     
     # Run the program and capture output
-    ./build/decaf-22-compiler "$frag_file" > "temp.out"
+    ./workdir/decaf-22-compiler "$frag_file" > "temp.out"
     
     # Compare with expected output
     if diff -w "temp.out" "$out_file" > /dev/null; then
