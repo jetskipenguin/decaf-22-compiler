@@ -41,6 +41,9 @@ bool Scanner::tokenize_reserve_ops(const std::string& content) {
     if(check_for_reserve_op(content, "==", TokenType::T_Equal)) return true;
     if(check_for_reserve_op(content, "true", TokenType::T_BoolConstant)) return true;
     if(check_for_reserve_op(content, "false", TokenType::T_BoolConstant)) return true;
+    if(check_for_reserve_op(content, "Print", TokenType::T_Print)) return true;
+    if(check_for_reserve_op(content, "ReadInteger", TokenType::T_ReadInteger)) return true;
+    if(check_for_reserve_op(content, "ReadLine", TokenType::T_ReadLine)) return true;
 
     if (content[i] == '+' || content[i] == '-' || content[i] == '*' || content[i] == '/' ||
         content[i] == '=' || content[i] == '<' || content[i] == '>' || content[i] == '!' ||

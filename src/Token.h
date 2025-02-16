@@ -24,6 +24,9 @@ enum class TokenType {
     T_LessEqual,
     T_GreaterEqual,
     T_Equal,
+    T_Print,
+    T_ReadInteger,
+    T_ReadLine,
     T_Unknown
 };
 
@@ -133,6 +136,9 @@ inline std::string token_to_string(Token token) {
         case TokenType::T_LessEqual: return "T_LessEqual";
         case TokenType::T_GreaterEqual: return "T_GreaterEqual";
         case TokenType::T_Equal: return "T_Equal";
+        case TokenType::T_Print: return "T_Print";
+        case TokenType::T_ReadInteger: return "T_ReadInteger";
+        case TokenType::T_ReadLine: return "T_ReadLine";
         default: return "Unknown";
     }
 }
