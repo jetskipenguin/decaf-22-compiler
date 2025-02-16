@@ -185,6 +185,7 @@ std::vector<Token> Scanner::tokenize(const std::string& content) {
         // Identifier
         if (std::isalpha(content[i]) || content[i] == '_') {
             int start = i;
+            int start_column = column;
             while (std::isalnum(content[i]) || content[i] == '_') {
                 i++;
                 column++;
@@ -197,7 +198,7 @@ std::vector<Token> Scanner::tokenize(const std::string& content) {
                 tokens.push_back({TokenType::T_Identifier, text, line, column-length, length, error}); 
             }
             else {
-                tokens.push_back({TokenType::T_Identifier, text, line, column-length, length});
+                tokens.push_back({TokenType::T_Identifier, text, line, start_column, length});
             }
             continue;
         }
@@ -236,7 +237,7 @@ std::vector<Token> Scanner::tokenize(const std::string& content) {
                 error.type = ErrorType::E_UnterminatedString;
                 error.message = "Unterminated string constant";
                 line++;
-                column = 1;
+                column = 0;
             }
 
             i++;  // Skip closing quote or newline
