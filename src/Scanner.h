@@ -13,6 +13,8 @@ class Scanner {
         std::vector<Token> tokens;
         bool check_for_reserve_op(const std::string& content, const std::string& token, const TokenType& type);
         bool tokenize_reserve_ops(const std::string& content);
+        bool tokenize_scientific_notation(const std::string& content);
+        bool tokenize_double(const std::string& content);
     public:
         Scanner();
         std::vector<Token> tokenize(const std::string& content);

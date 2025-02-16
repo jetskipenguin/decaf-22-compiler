@@ -58,6 +58,74 @@ bool Scanner::tokenize_reserve_ops(const std::string& content) {
     return false;
 }
 
+bool Scanner::tokenize_scientific_notation(const std::string& content) {
+    // Some doubles will have scientific notation
+    if(content[i] == 'E') {
+        i++;
+        column++;
+        if(content[i] == '+' || content[i] == '-') {
+            i++;
+            column++;
+        }
+        // If there is an E, a + or - must be present
+        else {
+            i -= 2;
+            column -= 2;
+            return false;
+        }
+        
+        // Ignore scientific notation if it's not valid
+        if(!std::isdigit(content[i])) {
+            i -= 2;
+            column -=2;
+            return false;
+        }
+
+        while(std::isdigit(content[i])) {
+            i++;
+            column++;
+        }
+    }
+}
+
+bool Scanner::tokenize_double(const std::string& content) {
+    // Double constant
+    if (std::isdigit(content[i])) {
+        int start = i;
+        int start_column = column;
+        while(std::isdigit(content[i])) {
+            i++;
+            column++;
+        }
+
+        if(content[i] == '.') {
+            i++;
+            column++;
+        }
+        // This is not a double if there is no period
+        else {
+            i = start;
+            column = start_column;
+            return false;
+        }
+
+        // Handle numbers after period
+        while(std::isdigit(content[i])) {
+            i++;
+            column++;
+        }
+
+        tokenize_scientific_notation(content);
+
+        int length = i - start;
+        std::string text = content.substr(start, length);
+        tokens.push_back({TokenType::T_DoubleConstant, text, line, start_column, length});
+
+        return true;
+    }
+    return false;
+}
+
 Scanner::Scanner() {
     i = 0;
     line = 1;
@@ -104,35 +172,10 @@ std::vector<Token> Scanner::tokenize(const std::string& content) {
             else {
                 tokens.push_back({TokenType::T_Identifier, text, line, column-length, length});
             }
-            //std::cout << "Found Identifier: " << text << std::endl;
             continue;
         }
 
-        // Double constant
-        if (content[i+1] == '.' && std::isdigit(content[i]) && std::isdigit(content[i + 2])) {
-            int start = i;
-            i++; 
-            column++;
-            // Skip numbers before decimal point
-            while (std::isdigit(content[i])) {
-                i++;
-                column++;
-            }
-            // Skip decimal point
-            i++;
-            column++;
-            // Skip numbers after decimal point
-            while (std::isdigit(content[i])) {
-                i++;
-                column++;
-            }
-
-            int length = i - start;
-            std::string text = content.substr(start, length);
-            tokens.push_back({TokenType::T_DoubleConstant, text, line, column-length, length});
-            //std::cout << "Found Double Constant: " << text << std::endl;
-            continue;
-        }
+        if(tokenize_double(content)) continue;
 
         // Integer constant
         if (std::isdigit(content[i]) && (content[i+1] != '.')) {
@@ -144,13 +187,11 @@ std::vector<Token> Scanner::tokenize(const std::string& content) {
             int length = i - start;
             std::string text = content.substr(start, length);
             tokens.push_back({TokenType::T_IntConstant, text, line, column-length, length});
-            //std::cout << "Found Integer Constant: " << text << std::endl;
             continue;
         }
 
         // String constant
         if (content[i] == '"') {
-            //std::cout << "Found String Constant" << std::endl;
             int start = i;
             i++;
             column++;
