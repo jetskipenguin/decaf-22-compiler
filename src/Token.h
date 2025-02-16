@@ -30,6 +30,7 @@ enum class TokenType {
 enum class ErrorType {
     E_IdentifierTooLong,
     E_UnterminatedString,
+    E_InvalidDirective,
     E_UnknownToken
 };
 

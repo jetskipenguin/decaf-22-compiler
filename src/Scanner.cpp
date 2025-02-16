@@ -151,6 +151,7 @@ std::vector<Token> Scanner::tokenize(const std::string& content) {
             continue;
         }
 
+        // Handle multi line comment
         if(content.substr(i, 2) == "/*"){
             i += 2;
             column += 2;
@@ -248,6 +249,18 @@ std::vector<Token> Scanner::tokenize(const std::string& content) {
             // Subtract 1 from length and start_line to ignore
             tokens.push_back({TokenType::T_StringConstant, text, start_line, start_column, length, error});
             continue;
+        }
+
+        // Ignore directives
+        if (content[i] == '#') {
+            int start = i;
+            while(content[i] != '\n') {
+                i++;
+                column++;
+                line++;
+            }
+            Error error = {ErrorType::E_InvalidDirective, "Invalid # directive"};
+            tokens.push_back({TokenType::T_Unknown, content.substr(start, i), line-1, start, start-i, error});
         }
         
         Error error = {ErrorType::E_UnknownToken, "Unknown token: \"" + content.substr(i, 1) + "\""};

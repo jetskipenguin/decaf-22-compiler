@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <unistd.h>
 #include <limits.h>
+
 #include "Scanner.h"
 
 #define MAX_IDENTIFIER_LENGTH 31
@@ -25,7 +26,7 @@ void print_token_error(const Token& token) {
         return;
     }
 
-    if(token.error.type == ErrorType::E_UnterminatedString)
+    if(token.error.type == ErrorType::E_UnterminatedString || token.error.type == ErrorType::E_InvalidDirective)
     {
         std::cout << std::endl << "*** Error line " << token.line << "." << std::endl
         << "*** " << token.error.message << ": " << token.text << std::endl; 
@@ -37,9 +38,11 @@ void print_token_error(const Token& token) {
 void print_tokens(const std::vector<Token>& tokens) {
     for(Token token: tokens) {
 
-        if(!token.error.message.empty() && token.type != TokenType::T_Unknown) {
-           print_token_error(token);
-           continue;
+        if(!token.error.message.empty()) {
+            if(token.error.type != ErrorType::E_UnknownToken) {
+                print_token_error(token);
+                continue;
+            }
         }  
         
         if(token.type != TokenType::T_Unknown) {
