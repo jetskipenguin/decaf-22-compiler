@@ -111,7 +111,6 @@ inline std::string remove_leading_zeros(const std::string& str) {
 }
 
 
-
 inline std::string token_to_string(Token token) {
     switch (token.type) {
         case TokenType::T_Identifier: return "T_Identifier";

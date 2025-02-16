@@ -58,7 +58,7 @@ bool Scanner::tokenize_reserve_ops(const std::string& content) {
     return false;
 }
 
-bool Scanner::tokenize_scientific_notation(const std::string& content) {
+void Scanner::tokenize_scientific_notation(const std::string& content) {
     // Some doubles will have scientific notation
     if(content[i] == 'E') {
         i++;
@@ -71,14 +71,14 @@ bool Scanner::tokenize_scientific_notation(const std::string& content) {
         else {
             i -= 2;
             column -= 2;
-            return false;
+            return;
         }
         
         // Ignore scientific notation if it's not valid
         if(!std::isdigit(content[i])) {
             i -= 2;
             column -=2;
-            return false;
+            return;
         }
 
         while(std::isdigit(content[i])) {
@@ -151,9 +151,36 @@ std::vector<Token> Scanner::tokenize(const std::string& content) {
             continue;
         }
 
-        if(tokenize_reserve_ops(content)) {
+        if(content.substr(i, 2) == "/*"){
+            i += 2;
+            column += 2;
+
+            while(content.substr(i, 2) != "*/") {
+                if(content[i] == '\n') {
+                    line++;
+                    i++;
+                    column = 1;
+                }
+                else {
+                    i++;
+                    column++;
+                }
+            }
+            i += 2;
+            column += 2;
             continue;
         }
+
+        // Skip the line when a comment is encountered
+        if(content.substr(i, 2) == "//") {
+            while(content[i] != '\n') {
+                i++;
+                column++;
+            }
+            continue;
+        }
+
+        if(tokenize_reserve_ops(content)) continue;
 
         // Identifier
         if (std::isalpha(content[i]) || content[i] == '_') {
@@ -218,7 +245,6 @@ std::vector<Token> Scanner::tokenize(const std::string& content) {
         
         Error error = {ErrorType::E_UnknownToken, "Unknown token: \"" + content.substr(i, 1) + "\""};
         tokens.push_back({TokenType::T_Unknown, content.substr(i, 1), line, i, 1, error});
-        //std::cout << "Unknown token at " << i << " text is: " << content[i] << std::endl;
         this->i++;
         this->column++;
     }
