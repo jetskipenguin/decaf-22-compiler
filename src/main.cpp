@@ -78,7 +78,7 @@ void print_tokens(const std::vector<Token>& tokens) {
 
 int main(int argc, char* argv[]) {
 
-    if (argc != 2) {
+    if (argc > 3 || argc <= 1) {
         std::cerr << "Usage: " << argv[0] << " <input_file>" << std::endl;
         return 1;
     }
@@ -99,7 +99,12 @@ int main(int argc, char* argv[]) {
     Scanner scanner;
     auto tokens = scanner.tokenize(content);
 
-    print_tokens(tokens);
-
+    if (argv[2] != nullptr) {
+        if (strcmp(argv[2], "--testScanner") == 0) {
+            print_tokens(tokens);
+            return 0;
+        }
+    }
+        
     return 0;
 }

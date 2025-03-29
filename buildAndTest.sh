@@ -14,15 +14,15 @@ fi
 # Initialize array for failed tests
 failed_tests=()
 
-# Run tests for each .frag file
-for frag_file in samples/*.frag; do
+# Run scanner tests
+for frag_file in samples/scanner/*.frag; do
     base_name=$(basename "$frag_file" .frag)
-    out_file="samples/${base_name}.out"
+    out_file="samples/scanner/${base_name}.out"
     
     echo "Testing $frag_file..."
     
     # Run the program and capture output
-    ./workdir/decaf-22-compiler "$frag_file" > "temp.out"
+    ./workdir/decaf-22-compiler "$frag_file" "--testScanner" > "temp.out"
     
     # Compare with expected output
     if diff -w "temp.out" "$out_file" > /dev/null; then
