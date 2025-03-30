@@ -7,7 +7,7 @@
 #include <limits.h>
 #include <cstring>
 
-#include "Scanner.h"
+#include "ASTBuilder.h"
 
 #define MAX_IDENTIFIER_LENGTH 31
 
@@ -98,7 +98,7 @@ int main(int argc, char* argv[]) {
     file.close();
     
     Scanner scanner;
-    auto tokens = scanner.tokenize(content);
+    std::vector<Token> tokens = scanner.tokenize(content);
 
     if (argv[2] != nullptr) {
         if (strcmp(argv[2], "--testScanner") == 0) {
@@ -106,6 +106,10 @@ int main(int argc, char* argv[]) {
             return 0;
         }
     }
+
+    ASTBuilder builder(tokens);
+    std::shared_ptr<ASTRootNode> ast = builder.buildAST();
+    ast->print();
         
     return 0;
 }

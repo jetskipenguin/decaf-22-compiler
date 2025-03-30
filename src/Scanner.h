@@ -1,5 +1,4 @@
-#ifndef SCANNER_H
-#define SCANNER_H
+#pragma once
 
 #include <string>
 #include <vector>
@@ -19,4 +18,3 @@ class Scanner {
         Scanner();
         std::vector<Token> tokenize(const std::string& content);
 };
-#endif

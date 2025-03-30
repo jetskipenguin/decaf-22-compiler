@@ -1,0 +1,736 @@
+#include "ASTBuilder.h"
+
+// Helper methods for token handling
+Token ASTBuilder::currentToken() const {
+    if (currentTokenIndex >= tokens.size()) {
+        // Return an EOF token if we've reached the end
+        Token eofToken;
+        eofToken.type = TokenType::T_Unknown;
+        eofToken.text = "EOF";
+        return eofToken;
+    }
+    return tokens[currentTokenIndex];
+}
+
+Token ASTBuilder::nextToken() {
+    if (currentTokenIndex < tokens.size()) {
+        return tokens[currentTokenIndex++];
+    }
+    // Return an EOF token if we've reached the end
+    Token eofToken;
+    eofToken.type = TokenType::T_Unknown;
+    eofToken.text = "EOF";
+    return eofToken;
+}
+
+bool ASTBuilder::match(TokenType type) {
+    if (check(type)) {
+        nextToken();
+        return true;
+    }
+    return false;
+}
+
+bool ASTBuilder::check(TokenType type) const {
+    return currentToken().type == type;
+}
+
+void ASTBuilder::consume(TokenType type) {
+    if (check(type)) {
+        nextToken();
+    } else {
+        std::cerr << "Error: Expected " << static_cast<int>(type) 
+                 << " but got " << static_cast<int>(currentToken().type) 
+                 << " at line " << currentToken().line 
+                 << ", column " << currentToken().column << std::endl;
+        // In a real compiler, you might throw an exception or set an error flag
+    }
+}
+
+// Main entry point for building the AST
+std::shared_ptr<ASTRootNode> ASTBuilder::buildAST() {
+    return parseProgram();
+}
+
+// Program -> Decl+
+std::shared_ptr<ASTRootNode> ASTBuilder::parseProgram() {
+    int line = currentToken().line;
+    int column = currentToken().column;
+    auto program = std::make_shared<ASTRootNode>(line, column);
+    
+    while (currentTokenIndex < tokens.size()) {
+        auto decl = parseDecl();
+        if (decl) {
+            program->addDecl(decl);
+        } else {
+            // Skip invalid declaration and try to recover
+            nextToken();
+        }
+    }
+    
+    return program;
+}
+
+// Decl -> VarDecl | FunctionDecl
+std::shared_ptr<Decl> ASTBuilder::parseDecl() {
+    // Check for type to determine if it's a declaration
+    ASTNodeType* type = parseType();
+    if (!type) return nullptr;
+    
+    // Now we need to check if it's a function or variable declaration
+    // Both start with a type and an identifier
+    if (!check(TokenType::T_Identifier)) {
+        return nullptr;
+    }
+    
+    std::string identifierName = currentToken().text;
+    int line = currentToken().line;
+    int column = currentToken().column;
+    consume(TokenType::T_Identifier);
+    
+    auto id = std::make_shared<Identifier>(identifierName, line, column);
+    
+    // If the next token is '(', it's a function declaration
+    if (check(TokenType::T_Operator) && currentToken().text == "(") {
+        return parseFunctionDecl(type, id, line, column);
+    } else {
+        // Otherwise, it's a variable declaration
+        return parseVarDeclAfterType(type, id, line, column);
+    }
+}
+
+// Helper function to parse function declaration after the type and identifier
+std::shared_ptr<FunctionDecl> ASTBuilder::parseFunctionDecl(
+    ASTNodeType* returnType, std::shared_ptr<Identifier> id, int line, int column) {
+    
+    auto funcDecl = std::make_shared<FunctionDecl>(returnType, id, line, column);
+    
+    // Parse parameter list
+    consume(TokenType::T_Operator); // Consume '('
+    
+    // Parse parameters
+    if (!check(TokenType::T_Operator) || currentToken().text != ")") {
+        do {
+            ASTNodeType* paramType = parseType();
+            if (!paramType) {
+                std::cerr << "Error: Expected parameter type at line " << currentToken().line << std::endl;
+                break;
+            }
+            
+            if (!check(TokenType::T_Identifier)) {
+                std::cerr << "Error: Expected parameter name at line " << currentToken().line << std::endl;
+                break;
+            }
+            
+            std::string paramName = currentToken().text;
+            int paramLine = currentToken().line;
+            int paramColumn = currentToken().column;
+            consume(TokenType::T_Identifier);
+            
+            auto paramId = std::make_shared<Identifier>(paramName, paramLine, paramColumn);
+            auto param = std::make_shared<VarDecl>(paramType, paramId, nullptr, paramLine, paramColumn);
+            
+            funcDecl->addFormal(param);
+            
+        } while (match(TokenType::T_Operator) && currentToken().text == ",");
+    }
+    
+    consume(TokenType::T_Operator); // Consume ')'
+    
+    // Parse function body
+    auto body = parseBlock();
+    funcDecl->setBody(body);
+    
+    return funcDecl;
+}
+
+// Helper function to parse variable declaration after the type and identifier
+std::shared_ptr<VarDecl> ASTBuilder::parseVarDeclAfterType(
+    ASTNodeType* type, std::shared_ptr<Identifier> id, int line, int column) {
+    
+    std::shared_ptr<Expr> init = nullptr;
+    
+    // Check for initialization
+    if (check(TokenType::T_Operator) && currentToken().text == "=") {
+        consume(TokenType::T_Operator); // Consume '='
+        init = parseExpr();
+    }
+    
+    consume(TokenType::T_Operator); // Consume ';'
+    
+    return std::make_shared<VarDecl>(type, id, init, line, column);
+}
+
+// Full implementation of variable declaration parsing
+std::shared_ptr<VarDecl> ASTBuilder::parseVarDecl() {
+    int line = currentToken().line;
+    int column = currentToken().column;
+    
+    ASTNodeType* type = parseType();
+    if (!type) return nullptr;
+    
+    if (!check(TokenType::T_Identifier)) {
+        std::cerr << "Error: Expected identifier after type at line " << line << std::endl;
+        return nullptr;
+    }
+    
+    std::string name = currentToken().text;
+    consume(TokenType::T_Identifier);
+    
+    auto id = std::make_shared<Identifier>(name, line, column);
+    std::shared_ptr<Expr> init = nullptr;
+    
+    // Check for initialization
+    if (check(TokenType::T_Operator) && currentToken().text == "=") {
+        consume(TokenType::T_Operator); // Consume '='
+        init = parseExpr();
+    }
+    
+    consume(TokenType::T_Operator); // Consume ';'
+    
+    return std::make_shared<VarDecl>(type, id, init, line, column);
+}
+
+// Type -> 'void' | 'int' | 'double' | 'bool' | 'string'
+ASTNodeType* ASTBuilder::parseType() {
+    int line = currentToken().line;
+    int column = currentToken().column;
+    
+    if (match(TokenType::T_Void)) {
+        return ASTNodeType::voidType;
+    } else if (match(TokenType::T_Int)) {
+        return ASTNodeType::intType;
+    } else if (match(TokenType::T_Double)) {
+        return ASTNodeType::doubleType;
+    } else if (match(TokenType::T_BoolConstant)) {
+        return ASTNodeType::boolType;
+    } else if (match(TokenType::T_String)) {
+        return ASTNodeType::stringType;
+    }
+    
+    return nullptr;
+}
+
+// Block -> '{' Stmt* '}'
+std::shared_ptr<BlockStmt> ASTBuilder::parseBlock() {
+    int line = currentToken().line;
+    int column = currentToken().column;
+    
+    if (!check(TokenType::T_Operator) || currentToken().text != "{") {
+        std::cerr << "Error: Expected '{' at line " << line << std::endl;
+        return nullptr;
+    }
+    
+    consume(TokenType::T_Operator); // Consume '{'
+    
+    auto block = std::make_shared<BlockStmt>(line, column);
+    
+    // Parse statements until we hit '}'
+    while (!check(TokenType::T_Operator) || currentToken().text != "}") {
+        auto stmt = parseStmt();
+        if (stmt) {
+            block->addStmt(stmt);
+        } else {
+            // Skip invalid statement and try to recover
+            nextToken();
+        }
+        
+        // Break if we've reached the end of the token stream
+        if (currentToken().type == TokenType::T_Unknown) {
+            std::cerr << "Error: Unexpected end of file while parsing block" << std::endl;
+            break;
+        }
+    }
+    
+    consume(TokenType::T_Operator); // Consume '}'
+    
+    return block;
+}
+
+// Stmt -> VarDecl | Block | IfStmt | WhileStmt | ForStmt | ReturnStmt | BreakStmt | PrintStmt | ExprStmt
+std::shared_ptr<Stmt> ASTBuilder::parseStmt() {
+    // Check for block statement
+    if (check(TokenType::T_Operator) && currentToken().text == "{") {
+        return parseBlock();
+    }
+    
+    // Check for if statement
+    if (check(TokenType::T_If)) {
+        return parseIfStmt();
+    }
+    
+    // Check for while statement
+    if (check(TokenType::T_While)) {
+        return parseWhileStmt();
+    }
+    
+    // Check for for statement
+    if (check(TokenType::T_For)) {
+        return parseForStmt();
+    }
+    
+    // Check for return statement
+    if (check(TokenType::T_Return)) {
+        return parseReturnStmt();
+    }
+    
+    // Check for break statement
+    if (check(TokenType::T_Break)) {
+        return parseBreakStmt();
+    }
+    
+    // Check for print statement
+    if (check(TokenType::T_Print)) {
+        return parsePrintStmt();
+    }
+    
+    // Check for variable declaration
+    TokenType type = currentToken().type;
+    if (type == TokenType::T_Int || type == TokenType::T_Double || 
+        type == TokenType::T_String || type == TokenType::T_Void || 
+        type == TokenType::T_BoolConstant) {
+        
+        auto varDecl = parseVarDecl();
+        if (!varDecl) return nullptr;
+        
+        // Wrap VarDecl in a statement to return it from parseStmt
+        int line = varDecl->line;
+        int column = varDecl->column;
+        auto block = std::make_shared<BlockStmt>(line, column);
+        block->addStmt(std::make_shared<ExprStmt>(nullptr, line, column)); // Placeholder
+        return block;
+    }
+    
+    // Otherwise, it's an expression statement
+    return parseExprStmt();
+}
+
+// IfStmt -> 'if' '(' Expr ')' Stmt ('else' Stmt)?
+std::shared_ptr<Stmt> ASTBuilder::parseIfStmt() {
+    int line = currentToken().line;
+    int column = currentToken().column;
+    
+    consume(TokenType::T_If);
+    consume(TokenType::T_Operator); // Consume '('
+    
+    auto condition = parseExpr();
+    
+    consume(TokenType::T_Operator); // Consume ')'
+    
+    auto thenStmt = parseStmt();
+    std::shared_ptr<Stmt> elseStmt = nullptr;
+    
+    if (match(TokenType::T_Else)) {
+        elseStmt = parseStmt();
+    }
+    
+    return std::make_shared<IfStmt>(condition, thenStmt, elseStmt, line, column);
+}
+
+// WhileStmt -> 'while' '(' Expr ')' Stmt
+std::shared_ptr<Stmt> ASTBuilder::parseWhileStmt() {
+    int line = currentToken().line;
+    int column = currentToken().column;
+    
+    consume(TokenType::T_While);
+    consume(TokenType::T_Operator); // Consume '('
+    
+    auto condition = parseExpr();
+    
+    consume(TokenType::T_Operator); // Consume ')'
+    
+    auto body = parseStmt();
+    
+    return std::make_shared<WhileStmt>(condition, body, line, column);
+}
+
+// ForStmt -> 'for' '(' (Expr)? ';' Expr? ';' Expr? ')' Stmt
+std::shared_ptr<Stmt> ASTBuilder::parseForStmt() {
+    int line = currentToken().line;
+    int column = currentToken().column;
+    
+    consume(TokenType::T_For);
+    consume(TokenType::T_Operator); // Consume '('
+    
+    // Parse initialization expression (optional)
+    std::shared_ptr<Expr> init = nullptr;
+    if (!check(TokenType::T_Operator) || currentToken().text != ";") {
+        init = parseExpr();
+    }
+    
+    consume(TokenType::T_Operator); // Consume ';'
+    
+    // Parse condition expression (optional)
+    std::shared_ptr<Expr> cond = nullptr;
+    if (!check(TokenType::T_Operator) || currentToken().text != ";") {
+        cond = parseExpr();
+    }
+    
+    consume(TokenType::T_Operator); // Consume ';'
+    
+    // Parse update expression (optional)
+    std::shared_ptr<Expr> update = nullptr;
+    if (!check(TokenType::T_Operator) || currentToken().text != ")") {
+        update = parseExpr();
+    }
+    
+    consume(TokenType::T_Operator); // Consume ')'
+    
+    auto body = parseStmt();
+    
+    return std::make_shared<ForStmt>(init, cond, update, body, line, column);
+}
+
+// ReturnStmt -> 'return' Expr? ';'
+std::shared_ptr<Stmt> ASTBuilder::parseReturnStmt() {
+    int line = currentToken().line;
+    int column = currentToken().column;
+    
+    consume(TokenType::T_Return);
+    
+    std::shared_ptr<Expr> value = nullptr;
+    if (!check(TokenType::T_Operator) || currentToken().text != ";") {
+        value = parseExpr();
+    }
+    
+    consume(TokenType::T_Operator); // Consume ';'
+    
+    return std::make_shared<ReturnStmt>(value, line, column);
+}
+
+// BreakStmt -> 'break' ';'
+std::shared_ptr<Stmt> ASTBuilder::parseBreakStmt() {
+    int line = currentToken().line;
+    int column = currentToken().column;
+    
+    consume(TokenType::T_Break);
+    consume(TokenType::T_Operator); // Consume ';'
+    
+    return std::make_shared<BreakStmt>(line, column);
+}
+
+// PrintStmt -> 'Print' '(' Expr (',' Expr)* ')' ';'
+std::shared_ptr<Stmt> ASTBuilder::parsePrintStmt() {
+    int line = currentToken().line;
+    int column = currentToken().column;
+    
+    consume(TokenType::T_Print);
+    consume(TokenType::T_Operator); // Consume '('
+    
+    auto printStmt = std::make_shared<PrintStmt>(line, column);
+    
+    // Parse at least one expression
+    if (!check(TokenType::T_Operator) || currentToken().text != ")") {
+        do {
+            auto arg = parseExpr();
+            printStmt->addArg(arg);
+        } while (match(TokenType::T_Operator) && currentToken().text == ",");
+    }
+    
+    consume(TokenType::T_Operator); // Consume ')'
+    consume(TokenType::T_Operator); // Consume ';'
+    
+    return printStmt;
+}
+
+// ExprStmt -> Expr ';'
+std::shared_ptr<Stmt> ASTBuilder::parseExprStmt() {
+    int line = currentToken().line;
+    int column = currentToken().column;
+    
+    auto expr = parseExpr();
+    
+    consume(TokenType::T_Operator); // Consume ';'
+    
+    return std::make_shared<ExprStmt>(expr, line, column);
+}
+
+// Expression parsing methods follow precedence rules
+// Expr -> Assignment
+std::shared_ptr<Expr> ASTBuilder::parseExpr() {
+    return parseAssignment();
+}
+
+// Assignment -> LogicalOr ('=' Assignment)?
+std::shared_ptr<Expr> ASTBuilder::parseAssignment() {
+    int line = currentToken().line;
+    int column = currentToken().column;
+    
+    auto expr = parseLogicalOr();
+    
+    if (check(TokenType::T_Operator) && currentToken().text == "=") {
+        consume(TokenType::T_Operator); // Consume '='
+        auto value = parseAssignment();
+        expr = std::make_shared<AssignExpr>(expr, value, line, column);
+    }
+    
+    return expr;
+}
+
+// LogicalOr -> LogicalAnd ('||' LogicalAnd)*
+std::shared_ptr<Expr> ASTBuilder::parseLogicalOr() {
+    int line = currentToken().line;
+    int column = currentToken().column;
+    
+    auto expr = parseLogicalAnd();
+    
+    while (check(TokenType::T_Or)) {
+        consume(TokenType::T_Or);
+        auto right = parseLogicalAnd();
+        expr = std::make_shared<BinaryExpr>(BinaryExpr::Or, expr, right, line, column);
+    }
+    
+    return expr;
+}
+
+// LogicalAnd -> Equality ('&&' Equality)*
+std::shared_ptr<Expr> ASTBuilder::parseLogicalAnd() {
+    int line = currentToken().line;
+    int column = currentToken().column;
+    
+    auto expr = parseEquality();
+    
+    while (check(TokenType::T_Operator) && currentToken().text == "&&") {
+        consume(TokenType::T_Operator); // Consume '&&'
+        auto right = parseEquality();
+        expr = std::make_shared<BinaryExpr>(BinaryExpr::And, expr, right, line, column);
+    }
+    
+    return expr;
+}
+
+// Equality -> Relational (('==' | '!=') Relational)*
+std::shared_ptr<Expr> ASTBuilder::parseEquality() {
+    int line = currentToken().line;
+    int column = currentToken().column;
+    
+    auto expr = parseRelational();
+    
+    while (true) {
+        if (check(TokenType::T_Equal)) {
+            consume(TokenType::T_Equal);
+            auto right = parseRelational();
+            expr = std::make_shared<BinaryExpr>(BinaryExpr::Equal, expr, right, line, column);
+        } else if (check(TokenType::T_Operator) && currentToken().text == "!=") {
+            consume(TokenType::T_Operator); // Consume '!='
+            auto right = parseRelational();
+            expr = std::make_shared<BinaryExpr>(BinaryExpr::NotEqual, expr, right, line, column);
+        } else {
+            break;
+        }
+    }
+    
+    return expr;
+}
+
+// Relational -> Additive (('<' | '<=' | '>' | '>=') Additive)*
+std::shared_ptr<Expr> ASTBuilder::parseRelational() {
+    int line = currentToken().line;
+    int column = currentToken().column;
+    
+    auto expr = parseAdditive();
+    
+    while (true) {
+        if (check(TokenType::T_Operator) && currentToken().text == "<") {
+            consume(TokenType::T_Operator); // Consume '<'
+            auto right = parseAdditive();
+            expr = std::make_shared<BinaryExpr>(BinaryExpr::Less, expr, right, line, column);
+        } else if (check(TokenType::T_LessEqual)) {
+            consume(TokenType::T_LessEqual);
+            auto right = parseAdditive();
+            expr = std::make_shared<BinaryExpr>(BinaryExpr::LessEqual, expr, right, line, column);
+        } else if (check(TokenType::T_Operator) && currentToken().text == ">") {
+            consume(TokenType::T_Operator); // Consume '>'
+            auto right = parseAdditive();
+            expr = std::make_shared<BinaryExpr>(BinaryExpr::Greater, expr, right, line, column);
+        } else if (check(TokenType::T_GreaterEqual)) {
+            consume(TokenType::T_GreaterEqual);
+            auto right = parseAdditive();
+            expr = std::make_shared<BinaryExpr>(BinaryExpr::GreaterEqual, expr, right, line, column);
+        } else {
+            break;
+        }
+    }
+    
+    return expr;
+}
+
+// Additive -> Multiplicative (('+' | '-') Multiplicative)*
+std::shared_ptr<Expr> ASTBuilder::parseAdditive() {
+    int line = currentToken().line;
+    int column = currentToken().column;
+    
+    auto expr = parseMultiplicative();
+    
+    while (true) {
+        if (check(TokenType::T_Operator) && currentToken().text == "+") {
+            consume(TokenType::T_Operator); // Consume '+'
+            auto right = parseMultiplicative();
+            expr = std::make_shared<BinaryExpr>(BinaryExpr::Plus, expr, right, line, column);
+        } else if (check(TokenType::T_Operator) && currentToken().text == "-") {
+            consume(TokenType::T_Operator); // Consume '-'
+            auto right = parseMultiplicative();
+            expr = std::make_shared<BinaryExpr>(BinaryExpr::Minus, expr, right, line, column);
+        } else {
+            break;
+        }
+    }
+    
+    return expr;
+}
+
+// Multiplicative -> Unary (('*' | '/' | '%') Unary)*
+std::shared_ptr<Expr> ASTBuilder::parseMultiplicative() {
+    int line = currentToken().line;
+    int column = currentToken().column;
+    
+    auto expr = parseUnary();
+    
+    while (true) {
+        if (check(TokenType::T_Operator) && currentToken().text == "*") {
+            consume(TokenType::T_Operator); // Consume '*'
+            auto right = parseUnary();
+            expr = std::make_shared<BinaryExpr>(BinaryExpr::Multiply, expr, right, line, column);
+        } else if (check(TokenType::T_Operator) && currentToken().text == "/") {
+            consume(TokenType::T_Operator); // Consume '/'
+            auto right = parseUnary();
+            expr = std::make_shared<BinaryExpr>(BinaryExpr::Divide, expr, right, line, column);
+        } else if (check(TokenType::T_Operator) && currentToken().text == "%") {
+            consume(TokenType::T_Operator); // Consume '%'
+            auto right = parseUnary();
+            expr = std::make_shared<BinaryExpr>(BinaryExpr::Modulo, expr, right, line, column);
+        } else {
+            break;
+        }
+    }
+    
+    return expr;
+}
+
+// Unary -> ('-' | '!') Unary | Call
+std::shared_ptr<Expr> ASTBuilder::parseUnary() {
+    int line = currentToken().line;
+    int column = currentToken().column;
+    
+    if (check(TokenType::T_Operator) && currentToken().text == "-") {
+        consume(TokenType::T_Operator); // Consume '-'
+        auto right = parseUnary();
+        return std::make_shared<UnaryExpr>(UnaryExpr::Minus, right, line, column);
+    } else if (check(TokenType::T_Operator) && currentToken().text == "!") {
+        consume(TokenType::T_Operator); // Consume '!'
+        auto right = parseUnary();
+        return std::make_shared<UnaryExpr>(UnaryExpr::Not, right, line, column);
+    }
+    
+    return parseCall();
+}
+
+// Call -> Primary ('(' Args ')')?
+std::shared_ptr<Expr> ASTBuilder::parseCall() {
+    int line = currentToken().line;
+    int column = currentToken().column;
+    
+    auto expr = parsePrimary();
+    
+    if (check(TokenType::T_Operator) && currentToken().text == "(") {
+        // Handle function call
+        consume(TokenType::T_Operator); // Consume '('
+        
+        // Check if it's a function identifier
+        if (auto var = std::dynamic_pointer_cast<VarExpr>(expr)) {
+            auto callExpr = std::make_shared<CallExpr>(var->id, line, column);
+            
+            // Parse arguments if any
+            if (!check(TokenType::T_Operator) || currentToken().text != ")") {
+                do {
+                    auto arg = parseExpr();
+                    callExpr->addArg(arg);
+                } while (match(TokenType::T_Operator) && currentToken().text == ",");
+            }
+            
+            consume(TokenType::T_Operator); // Consume ')'
+            
+            return callExpr;
+        } else {
+            std::cerr << "Error: Cannot call non-function at line " << line << std::endl;
+            // Skip to closing parenthesis
+            while (!check(TokenType::T_Operator) || currentToken().text != ")") {
+                nextToken();
+            }
+            consume(TokenType::T_Operator); // Consume ')'
+            return expr;
+        }
+    }
+    
+    return expr;
+}
+
+// Primary -> IntConstant | DoubleConstant | StringConstant | BoolConstant | 'null' | '(' Expr ')' | Identifier
+std::shared_ptr<Expr> ASTBuilder::parsePrimary() {
+    int line = currentToken().line;
+    int column = currentToken().column;
+    
+    // Parse integer literal
+    if (check(TokenType::T_IntConstant)) {
+        int value = std::stoi(currentToken().text);
+        consume(TokenType::T_IntConstant);
+        return std::make_shared<IntLiteral>(value, line, column);
+    }
+    
+    // Parse double literal
+    if (check(TokenType::T_DoubleConstant)) {
+        double value = std::stod(currentToken().text);
+        consume(TokenType::T_DoubleConstant);
+        return std::make_shared<DoubleLiteral>(value, line, column);
+    }
+    
+    // Parse string literal
+    if (check(TokenType::T_StringConstant)) {
+        std::string value = currentToken().text;
+        consume(TokenType::T_StringConstant);
+        return std::make_shared<StringLiteral>(value, line, column);
+    }
+    
+    // Parse boolean literal
+    if (check(TokenType::T_BoolConstant)) {
+        bool value = (currentToken().text == "true");
+        consume(TokenType::T_BoolConstant);
+        return std::make_shared<BoolLiteral>(value, line, column);
+    }
+    
+    // Parse null literal
+    if (check(TokenType::T_Operator) && currentToken().text == "null") {
+        consume(TokenType::T_Operator);
+        return std::make_shared<NullLiteral>(line, column);
+    }
+    
+    // Parse parenthesized expression
+    if (check(TokenType::T_Operator) && currentToken().text == "(") {
+        consume(TokenType::T_Operator); // Consume '('
+        auto expr = parseExpr();
+        consume(TokenType::T_Operator); // Consume ')'
+        return expr;
+    }
+    
+    // Parse identifier (variable reference)
+    if (check(TokenType::T_Identifier)) {
+        std::string name = currentToken().text;
+        consume(TokenType::T_Identifier);
+        auto id = std::make_shared<Identifier>(name, line, column);
+        return std::make_shared<VarExpr>(id, line, column);
+    }
+    
+    // Error case
+    std::cerr << "Error: Unexpected token '" << currentToken().text 
+              << "' at line " << line << std::endl;
+    nextToken(); // Skip the unexpected token
+    
+    // Return a placeholder expression in case of error
+    return std::make_shared<IntLiteral>(0, line, column);
+}
+
+// Usage example:
+// std::vector<Token> tokens = lexer.tokenize(sourceCode);
+// ASTBuilder builder(tokens);
+// std::shared_ptr<Program> ast = builder.buildAST();
+// ast->print(); // Print the AST for debugging
