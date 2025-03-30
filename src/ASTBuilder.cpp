@@ -41,11 +41,12 @@ void ASTBuilder::consume(TokenType type) {
     if (check(type)) {
         nextToken();
     } else {
-        std::cerr << "Error: Expected " <<  token_to_string(type)
-                 << " but got " << static_cast<int>(currentToken().type) 
+        if(verbose) {
+            std::cerr << "Error: Expected " <<  token_type_to_string(type)
+                 << " but got " << token_type_to_string(currentToken().type)
                  << " at line " << currentToken().line 
                  << ", column " << currentToken().column << std::endl;
-        // In a real compiler, you might throw an exception or set an error flag
+        }
     }
 }
 

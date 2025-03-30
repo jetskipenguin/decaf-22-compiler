@@ -143,3 +143,31 @@ inline std::string token_to_string(Token token) {
         default: return "Unknown";
     }
 }
+
+inline std::string token_type_to_string(TokenType type) {
+    switch (type) {
+        case TokenType::T_Identifier: return "T_Identifier";
+        case TokenType::T_IntConstant: return "T_IntConstant";
+        case TokenType::T_DoubleConstant: return "T_DoubleConstant";
+        case TokenType::T_StringConstant: return "T_StringConstant";
+        case TokenType::T_BoolConstant: return "T_BoolConstant";
+        case TokenType::T_Operator: return "T_Operator";
+        case TokenType::T_Void: return "T_Void";
+        case TokenType::T_Int: return "T_Int";
+        case TokenType::T_Double: return "T_Double";
+        case TokenType::T_String: return "T_String";
+        case TokenType::T_While: return "T_While";
+        case TokenType::T_If: return "T_If";
+        case TokenType::T_Else: return "T_Else";
+        case TokenType::T_Return: return "T_Return";
+        case TokenType::T_Break: return "T_Break";
+        case TokenType::T_Or: return "T_Or";
+        case TokenType::T_LessEqual: return "T_LessEqual";
+        case TokenType::T_GreaterEqual: return "T_GreaterEqual";
+        case TokenType::T_Equal: return "T_Equal";
+        case TokenType::T_Print: return "T_Print";
+        case TokenType::T_ReadInteger: return "T_ReadInteger";
+        case TokenType::T_ReadLine: return "T_ReadLine";
+        default: return "Unknown";
+    }
+}
