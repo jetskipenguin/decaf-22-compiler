@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <unistd.h>
 #include <limits.h>
+#include <cstring>
 
 #include "Scanner.h"
 
