@@ -41,7 +41,7 @@ void ASTBuilder::consume(TokenType type) {
     if (check(type)) {
         nextToken();
     } else {
-        std::cerr << "Error: Expected " << static_cast<int>(type) 
+        std::cerr << "Error: Expected " <<  token_to_string(type)
                  << " but got " << static_cast<int>(currentToken().type) 
                  << " at line " << currentToken().line 
                  << ", column " << currentToken().column << std::endl;
@@ -244,7 +244,9 @@ std::shared_ptr<BlockStmt> ASTBuilder::parseBlock() {
         
         // Break if we've reached the end of the token stream
         if (currentToken().type == TokenType::T_Unknown) {
-            std::cerr << "Error: Unexpected end of file while parsing block" << std::endl;
+            if(verbose) {
+                std::cerr << "Warning: Unexpected end of file while parsing block" << std::endl;
+            }
             break;
         }
     }

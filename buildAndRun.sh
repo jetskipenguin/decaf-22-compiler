@@ -2,4 +2,4 @@
 
 cd workdir
 ./build.sh
-./exec.sh ../samples/baddouble.frag
+./exec.sh ../samples/syntax_analyzer/simple.decaf

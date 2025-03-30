@@ -24,6 +24,7 @@ private:
     std::vector<Token> tokens;
     std::vector<std::string> sourceCode; // For logging purposes only
     size_t currentTokenIndex;
+    bool verbose;
 
     // Token handling helpers
     Token currentToken() const;
@@ -67,6 +68,14 @@ public:
         this->currentTokenIndex = 0;
         this->tokens = tokens;
         this->sourceCode = sourceCode;
+        this->verbose = false;
+    }
+
+    explicit ASTBuilder(const std::vector<Token>& tokens, const std::vector<std::string>& sourceCode, bool verbose) {
+        this->currentTokenIndex = 0;
+        this->tokens = tokens;
+        this->sourceCode = sourceCode;
+        this->verbose = verbose;
     }
 
     std::shared_ptr<ASTRootNode> buildAST();
