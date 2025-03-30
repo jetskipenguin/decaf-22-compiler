@@ -63,13 +63,11 @@ private:
     std::shared_ptr<Expr> parsePrimary();
 
 public:
-    // Constructor
     explicit ASTBuilder(const std::vector<Token>& tokens, const std::vector<std::string>& sourceCode) {
         this->currentTokenIndex = 0;
         this->tokens = tokens;
         this->sourceCode = sourceCode;
     }
 
-    // Main entry point for building the AST
     std::shared_ptr<ASTRootNode> buildAST();
 };

@@ -41,7 +41,7 @@ void ASTNodeType::print(int indent) const {
         case Null: typeName = "null"; break;
         case Error: typeName = "error"; break;
     }
-    std::cout << indentStr << "Type: " << typeName << std::endl;
+    std::cout << indentStr << "(return type) Type: " << typeName << std::endl;
 }
 
 // Identifier implementation
@@ -99,7 +99,7 @@ ASTNodeType* StringLiteral::getType() const {
 
 void StringLiteral::print(int indent) const {
     std::string indentStr(indent, ' ');
-    std::cout << indentStr << "StringLiteral: \"" << value << "\"" << std::endl;
+    std::cout << indentStr << "StringConstant: " << value << std::endl;
 }
 
 NullLiteral::NullLiteral(int line, int column)
@@ -276,7 +276,7 @@ void BlockStmt::addStmt(std::shared_ptr<Stmt> stmt) {
 
 void BlockStmt::print(int indent) const {
     std::string indentStr(indent, ' ');
-    std::cout << indentStr << "BlockStmt: " << std::endl;
+    std::cout << indentStr << "(body) StmtBlock: " << std::endl;
     for (const auto& stmt : stmts) {
         stmt->print(indent + 2);
     }
@@ -364,8 +364,10 @@ void PrintStmt::addArg(std::shared_ptr<Expr> arg) {
 void PrintStmt::print(int indent) const {
     std::string indentStr(indent, ' ');
     std::cout << indentStr << "PrintStmt: " << std::endl;
+
+    std::cout << "  " << this->line << indentStr << "(args) ";
     for (const auto& arg : args) {
-        arg->print(indent + 2);
+        arg->print(0);
     }
 }
 
@@ -399,14 +401,17 @@ void FunctionDecl::setBody(std::shared_ptr<BlockStmt> functionBody) {
 
 void FunctionDecl::print(int indent) const {
     std::string indentStr(indent, ' ');
-    std::cout << indentStr << "FunctionDecl: " << std::endl;
+    std::cout << indentStr << "FnDecl " << std::endl;
     returnType->print(indent + 2);
     id->print(indent + 2);
-    std::cout << indentStr << "  Formals: " << std::endl;
-    for (const auto& formal : formals) {
-        formal->print(indent + 4);
+
+    if(formals.size() > 0) {
+        std::cout << indentStr << "  Formals: " << std::endl;
+        for (const auto& formal : formals) {
+            formal->print(indent + 4);
+        }
     }
-    std::cout << indentStr << "  Body: " << std::endl;
+
     if (body) {
         body->print(indent + 4);
     }
@@ -421,7 +426,7 @@ void ASTRootNode::addDecl(std::shared_ptr<Decl> decl) {
 
 void ASTRootNode::print(int indent) const {
     std::string indentStr(indent, ' ');
-    std::cout << indentStr << "ASTRootNode: " << std::endl;
+    std::cout << indentStr << "Program: " << std::endl;
     for (const auto& decl : decls) {
         decl->print(indent + 2);
     }

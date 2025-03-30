@@ -168,7 +168,7 @@ std::shared_ptr<VarDecl> ASTBuilder::parseVarDeclAfterType(
     return std::make_shared<VarDecl>(type, id, init, line, column);
 }
 
-// Full implementation of variable declaration parsing
+
 std::shared_ptr<VarDecl> ASTBuilder::parseVarDecl() {
     int line = currentToken().line;
     int column = currentToken().column;
