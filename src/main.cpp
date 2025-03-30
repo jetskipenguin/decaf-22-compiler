@@ -111,7 +111,7 @@ int main(int argc, char* argv[]) {
 
     ASTBuilder builder(tokens, sourceCode);
     std::shared_ptr<ASTRootNode> ast = builder.buildAST();
-    ast->print();
+    ast->print(3);
         
     return 0;
 }

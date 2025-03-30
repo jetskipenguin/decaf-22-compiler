@@ -49,8 +49,8 @@ Identifier::Identifier(const std::string& name, int line, int column)
     : Node(line, column), name(name) {}
 
 void Identifier::print(int indent) const {
-    std::string indentStr(indent, ' ');
-    std::cout << indentStr << "Identifier: " << name << std::endl;
+    std::string indentStr(indent-3, ' ');
+    std::cout << "  " << this->line << indentStr << "Identifier: " << name << std::endl;
 }
 
 // Literal expressions
@@ -125,7 +125,7 @@ ASTNodeType* VarExpr::getType() const {
 void VarExpr::print(int indent) const {
     std::string indentStr(indent, ' ');
     std::cout << indentStr << "VarExpr: " << std::endl;
-    id->print(indent + 2);
+    id->print(indent +3);
 }
 
 // Binary operation expression
@@ -186,8 +186,8 @@ void BinaryExpr::print(int indent) const {
     }
     
     std::cout << indentStr << "BinaryExpr: " << opStr << std::endl;
-    left->print(indent + 2);
-    right->print(indent + 2);
+    left->print(indent +3);
+    right->print(indent +3);
 }
 
 // Unary operation expression
@@ -215,7 +215,7 @@ void UnaryExpr::print(int indent) const {
     std::string indentStr(indent, ' ');
     std::string opStr = (op == Minus) ? "-" : "!";
     std::cout << indentStr << "UnaryExpr: " << opStr << std::endl;
-    expr->print(indent + 2);
+    expr->print(indent +3);
 }
 
 // Function call expression
@@ -233,7 +233,7 @@ ASTNodeType* CallExpr::getType() const {
 void CallExpr::print(int indent) const {
     std::string indentStr(indent, ' ');
     std::cout << indentStr << "CallExpr: " << std::endl;
-    id->print(indent + 2);
+    id->print(indent +3);
     std::cout << indentStr << "  Args: " << std::endl;
     for (const auto& arg : args) {
         arg->print(indent + 4);
@@ -265,7 +265,7 @@ ExprStmt::ExprStmt(std::shared_ptr<Expr> expr, int line, int column)
 void ExprStmt::print(int indent) const {
     std::string indentStr(indent, ' ');
     std::cout << indentStr << "ExprStmt: " << std::endl;
-    expr->print(indent + 2);
+    expr->print(indent +3);
 }
 
 BlockStmt::BlockStmt(int line, int column) : Stmt(line, column) {}
@@ -278,7 +278,7 @@ void BlockStmt::print(int indent) const {
     std::string indentStr(indent, ' ');
     std::cout << indentStr << "(body) StmtBlock: " << std::endl;
     for (const auto& stmt : stmts) {
-        stmt->print(indent + 2);
+        stmt->print(indent + 3);
     }
 }
 
@@ -344,7 +344,7 @@ void ReturnStmt::print(int indent) const {
     std::string indentStr(indent, ' ');
     std::cout << indentStr << "ReturnStmt: " << std::endl;
     if (expr) {
-        expr->print(indent + 2);
+        expr->print(indent +3);
     }
 }
 
@@ -379,8 +379,8 @@ VarDecl::VarDecl(ASTNodeType* type, std::shared_ptr<Identifier> id,
 void VarDecl::print(int indent) const {
     std::string indentStr(indent, ' ');
     std::cout << indentStr << "VarDecl: " << std::endl;
-    type->print(indent + 2);
-    id->print(indent + 2);
+    type->print(indent +3);
+    id->print(indent +3);
     if (init) {
         std::cout << indentStr << "  Init: " << std::endl;
         init->print(indent + 4);
@@ -400,20 +400,20 @@ void FunctionDecl::setBody(std::shared_ptr<BlockStmt> functionBody) {
 }
 
 void FunctionDecl::print(int indent) const {
-    std::string indentStr(indent, ' ');
-    std::cout << indentStr << "FnDecl " << std::endl;
-    returnType->print(indent + 2);
-    id->print(indent + 2);
+    std::string indentStr(indent-3, ' ');
+    std::cout << "  " << this->line << indentStr << "FnDecl " << std::endl;
+    returnType->print(indent +3);
+    id->print(indent +3);
 
     if(formals.size() > 0) {
         std::cout << indentStr << "  Formals: " << std::endl;
         for (const auto& formal : formals) {
-            formal->print(indent + 4);
+            formal->print(indent + 3);
         }
     }
 
     if (body) {
-        body->print(indent + 4);
+        body->print(indent + 3);
     }
 }
 
@@ -428,6 +428,7 @@ void ASTRootNode::print(int indent) const {
     std::string indentStr(indent, ' ');
     std::cout << indentStr << "Program: " << std::endl;
     for (const auto& decl : decls) {
-        decl->print(indent + 2);
+        decl->print(indent +3);
     }
+    std::cout << std::endl;
 }
