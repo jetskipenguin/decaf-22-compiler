@@ -1,3 +1,4 @@
+#include <numeric>
 #include "ASTBuilder.h"
 
 // Helper methods for token handling
@@ -11,6 +12,7 @@ Token ASTBuilder::currentToken() const {
     }
     return tokens[currentTokenIndex];
 }
+
 
 Token ASTBuilder::nextToken() {
     if (currentTokenIndex < tokens.size()) {
@@ -118,7 +120,12 @@ std::shared_ptr<FunctionDecl> ASTBuilder::parseFunctionDecl(
             }
             
             if (!check(TokenType::T_Identifier)) {
-                std::cerr << "Error: Expected parameter name at line " << currentToken().line << std::endl;
+                std::string indentStr(currentToken().column-1, ' ');
+
+                std::cerr << "*** Error line " << currentToken().line << "." << std::endl
+                << sourceCode.at(currentToken().line-1) << std::endl 
+                << indentStr << "^" << std::endl
+                << "*** syntax error" << std::endl;
                 break;
             }
             

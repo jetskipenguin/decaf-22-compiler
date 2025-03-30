@@ -92,8 +92,10 @@ int main(int argc, char* argv[]) {
 
     std::string content;
     std::string line;
+    std::vector<std::string> sourceCode;
     while (std::getline(file, line)) {
         content += line + "\n";
+        sourceCode.push_back(line);
     }
     file.close();
     
@@ -107,7 +109,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    ASTBuilder builder(tokens);
+    ASTBuilder builder(tokens, sourceCode);
     std::shared_ptr<ASTRootNode> ast = builder.buildAST();
     ast->print();
         

@@ -22,6 +22,7 @@ class ASTNodeType;
 class ASTBuilder {
 private:
     std::vector<Token> tokens;
+    std::vector<std::string> sourceCode; // For logging purposes only
     size_t currentTokenIndex;
 
     // Token handling helpers
@@ -63,7 +64,11 @@ private:
 
 public:
     // Constructor
-    explicit ASTBuilder(const std::vector<Token>& tokens) : tokens(tokens), currentTokenIndex(0) {}
+    explicit ASTBuilder(const std::vector<Token>& tokens, const std::vector<std::string>& sourceCode) {
+        this->currentTokenIndex = 0;
+        this->tokens = tokens;
+        this->sourceCode = sourceCode;
+    }
 
     // Main entry point for building the AST
     std::shared_ptr<ASTRootNode> buildAST();
