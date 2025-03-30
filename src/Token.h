@@ -27,6 +27,7 @@ enum class TokenType {
     T_Print,
     T_ReadInteger,
     T_ReadLine,
+    T_For,
     T_Unknown
 };
 
