@@ -14,15 +14,18 @@ Token ASTBuilder::currentToken() const {
 }
 
 
-Token ASTBuilder::nextToken() {
-    if (currentTokenIndex < tokens.size()) {
-        return tokens[currentTokenIndex++];
+void ASTBuilder::nextToken() {
+    if(verbose) {
+        std::cout << "Current index " << currentTokenIndex << ", num tokens: " << tokens.size() << std::endl;
+        std::cout << "On Token:" << tokens[currentTokenIndex].text << std::endl;
     }
-    // Return an EOF token if we've reached the end
-    Token eofToken;
-    eofToken.type = TokenType::T_Unknown;
-    eofToken.text = "EOF";
-    return eofToken;
+    
+    if (currentTokenIndex <= tokens.size()) {
+        currentTokenIndex++;
+        return;
+    }
+    std::cout << "Throwing exception, reached end of file" << std::endl;
+    throw std::out_of_range("Reached EOF");
 }
 
 bool ASTBuilder::match(TokenType type) {
@@ -62,12 +65,12 @@ std::shared_ptr<ASTRootNode> ASTBuilder::parseProgram() {
     auto program = std::make_shared<ASTRootNode>(line, column);
     
     while (currentTokenIndex < tokens.size()) {
-        auto decl = parseDecl();
-        if (decl) {
-            program->addDecl(decl);
-        } else {
+            auto decl = parseDecl();
+            if (decl) {
+                program->addDecl(decl);
+            } else {
             // Skip invalid declaration and try to recover
-            nextToken();
+                    nextToken();
         }
     }
     
@@ -232,8 +235,6 @@ std::shared_ptr<BlockStmt> ASTBuilder::parseBlock() {
     int line = currentToken().line;
     int column = currentToken().column;
 
-    // std::cout << currentToken().text << " is type: " << token_type_to_string(currentToken().type) << std::endl;
-    
     if (!check(TokenType::T_Operator) || currentToken().text != "{") {
         std::cerr << "Error: Expected '{' at line " << line-1 << std::endl;
         return nullptr;
@@ -261,9 +262,9 @@ std::shared_ptr<BlockStmt> ASTBuilder::parseBlock() {
             break;
         }
     }
-    
+
     consume(TokenType::T_Operator); // Consume '}'
-    
+
     return block;
 }
 

@@ -28,7 +28,7 @@ private:
 
     // Token handling helpers
     Token currentToken() const;
-    Token nextToken();
+    void nextToken();
     bool match(TokenType type);
     bool check(TokenType type) const;
     void consume(TokenType type);
