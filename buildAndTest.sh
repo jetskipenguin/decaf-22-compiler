@@ -15,25 +15,25 @@ fi
 failed_tests=()
 
 # Run scanner tests
-# for frag_file in samples/scanner/*.frag; do
-#     base_name=$(basename "$frag_file" .frag)
-#     out_file="samples/scanner/${base_name}.out"
+for frag_file in samples/scanner/*.frag; do
+    base_name=$(basename "$frag_file" .frag)
+    out_file="samples/scanner/${base_name}.out"
     
-#     echo "Testing $frag_file..."
+    echo "Testing $frag_file..."
     
-#     # Run the program and capture output
-#     ./workdir/decaf-22-compiler "$frag_file" "--testScanner" > "temp.out"
+    # Run the program and capture output
+    ./workdir/decaf-22-compiler "$frag_file" "--testScanner" > "temp.out"
     
-#     # Compare with expected output
-#     if diff -w "temp.out" "$out_file" > /dev/null; then
-#         echo "✓ Test passed: $base_name"
-#     else
-#         echo "✗ Test failed: $base_name"
-#         echo "Differences found:"
-#         diff -w "temp.out" "$out_file"
-#         failed_tests+=("$frag_file")
-#     fi
-# done
+    # Compare with expected output
+    if diff -w "temp.out" "$out_file" > /dev/null; then
+        echo "✓ Test passed: $base_name"
+    else
+        echo "✗ Test failed: $base_name"
+        echo "Differences found:"
+        diff -w "temp.out" "$out_file"
+        failed_tests+=("$frag_file")
+    fi
+done
 
 # Run syntax analyzer tests
 for frag_file in samples/syntax_analyzer/*.decaf; do
