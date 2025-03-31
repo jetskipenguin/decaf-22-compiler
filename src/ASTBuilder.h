@@ -32,6 +32,7 @@ private:
     bool match(TokenType type);
     bool check(TokenType type) const;
     void consume(TokenType type);
+    void consume(TokenType type, std::string character);
 
     // AST node parsing methods
     std::shared_ptr<ASTRootNode> parseProgram();

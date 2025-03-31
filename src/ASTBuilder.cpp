@@ -53,6 +53,19 @@ void ASTBuilder::consume(TokenType type) {
     }
 }
 
+void ASTBuilder::consume(TokenType type, std::string character) {
+    if(check(type) && currentToken().text == character) {
+        nextToken();
+    } else {
+        if(verbose) {
+            std::cerr << "Error: Expected " <<  token_type_to_string(type) << " with character:  " << character
+                 << " but got " << token_type_to_string(currentToken().type)
+                 << " at line " << currentToken().line 
+                 << ", column " << currentToken().column << std::endl;
+        }
+    }
+}
+
 // Main entry point for building the AST
 std::shared_ptr<ASTRootNode> ASTBuilder::buildAST() {
     return parseProgram();
@@ -110,7 +123,7 @@ std::shared_ptr<FunctionDecl> ASTBuilder::parseFunctionDecl(
     
     auto funcDecl = std::make_shared<FunctionDecl>(returnType, id, line, column);
     
-    consume(TokenType::T_Operator); // Consume '('
+    consume(TokenType::T_Operator, ")");
     
     // Parse parameters
     if (!check(TokenType::T_Operator) || currentToken().text != ")") {
@@ -144,7 +157,7 @@ std::shared_ptr<FunctionDecl> ASTBuilder::parseFunctionDecl(
             if (!(check(TokenType::T_Operator) && currentToken().text == ",")) {
                 break;
             }
-            consume(TokenType::T_Operator); // Consume ','
+            consume(TokenType::T_Operator, ","); // Consume ','
             
         } while (true);
     }
@@ -153,7 +166,7 @@ std::shared_ptr<FunctionDecl> ASTBuilder::parseFunctionDecl(
     if (!check(TokenType::T_Operator) || currentToken().text != ")") {
         std::cerr << "Error: Expected ')' at line " << currentToken().line << std::endl;
     } else {
-        consume(TokenType::T_Operator); // Consume ')'
+        consume(TokenType::T_Operator, ")");
     }
     
     // Parse function body
@@ -171,11 +184,11 @@ std::shared_ptr<VarDecl> ASTBuilder::parseVarDeclAfterType(
     
     // Check for initialization
     if (check(TokenType::T_Operator) && currentToken().text == "=") {
-        consume(TokenType::T_Operator); // Consume '='
+        consume(TokenType::T_Operator, "="); // Consume '='
         init = parseExpr();
     }
     
-    consume(TokenType::T_Operator); // Consume ';'
+    consume(TokenType::T_Operator, ";"); // Consume ';'
     
     return std::make_shared<VarDecl>(type, id, init, line, column);
 }
@@ -201,11 +214,11 @@ std::shared_ptr<VarDecl> ASTBuilder::parseVarDecl() {
     
     // Check for initialization
     if (check(TokenType::T_Operator) && currentToken().text == "=") {
-        consume(TokenType::T_Operator); // Consume '='
+        consume(TokenType::T_Operator, ","); // Consume '='
         init = parseExpr();
     }
     
-    consume(TokenType::T_Operator); // Consume ';'
+    consume(TokenType::T_Operator, ";"); // Consume ';'
     
     return std::make_shared<VarDecl>(type, id, init, line, column);
 }
@@ -240,7 +253,7 @@ std::shared_ptr<BlockStmt> ASTBuilder::parseBlock() {
         return nullptr;
     }
     
-    consume(TokenType::T_Operator); // Consume '{'
+    consume(TokenType::T_Operator, "{"); // Consume '{'
     
     auto block = std::make_shared<BlockStmt>(line, column);
     
@@ -263,7 +276,7 @@ std::shared_ptr<BlockStmt> ASTBuilder::parseBlock() {
         }
     }
 
-    consume(TokenType::T_Operator); // Consume '}'
+    consume(TokenType::T_Operator, "}"); // Consume '}'
 
     return block;
 }
@@ -332,11 +345,11 @@ std::shared_ptr<Stmt> ASTBuilder::parseIfStmt() {
     int column = currentToken().column;
     
     consume(TokenType::T_If);
-    consume(TokenType::T_Operator); // Consume '('
+    consume(TokenType::T_Operator, "("); // Consume '('
     
     auto condition = parseExpr();
     
-    consume(TokenType::T_Operator); // Consume ')'
+    consume(TokenType::T_Operator, ")"); // Consume ')'
     
     auto thenStmt = parseStmt();
     std::shared_ptr<Stmt> elseStmt = nullptr;
@@ -354,11 +367,11 @@ std::shared_ptr<Stmt> ASTBuilder::parseWhileStmt() {
     int column = currentToken().column;
     
     consume(TokenType::T_While);
-    consume(TokenType::T_Operator); // Consume '('
+    consume(TokenType::T_Operator, "("); // Consume '('
     
     auto condition = parseExpr();
     
-    consume(TokenType::T_Operator); // Consume ')'
+    consume(TokenType::T_Operator, ")"); // Consume ')'
     
     auto body = parseStmt();
     
@@ -371,7 +384,7 @@ std::shared_ptr<Stmt> ASTBuilder::parseForStmt() {
     int column = currentToken().column;
     
     consume(TokenType::T_For);
-    consume(TokenType::T_Operator); // Consume '('
+    consume(TokenType::T_Operator, "("); // Consume '('
     
     // Parse initialization expression (optional)
     std::shared_ptr<Expr> init = nullptr;
@@ -379,7 +392,7 @@ std::shared_ptr<Stmt> ASTBuilder::parseForStmt() {
         init = parseExpr();
     }
     
-    consume(TokenType::T_Operator); // Consume ';'
+    consume(TokenType::T_Operator, ";"); // Consume ';'
     
     // Parse condition expression (optional)
     std::shared_ptr<Expr> cond = nullptr;
@@ -387,7 +400,7 @@ std::shared_ptr<Stmt> ASTBuilder::parseForStmt() {
         cond = parseExpr();
     }
     
-    consume(TokenType::T_Operator); // Consume ';'
+    consume(TokenType::T_Operator, ";"); // Consume ';'
     
     // Parse update expression (optional)
     std::shared_ptr<Expr> update = nullptr;
@@ -395,7 +408,7 @@ std::shared_ptr<Stmt> ASTBuilder::parseForStmt() {
         update = parseExpr();
     }
     
-    consume(TokenType::T_Operator); // Consume ')'
+    consume(TokenType::T_Operator, ")"); // Consume ')'
     
     auto body = parseStmt();
     
@@ -414,7 +427,7 @@ std::shared_ptr<Stmt> ASTBuilder::parseReturnStmt() {
         value = parseExpr();
     }
     
-    consume(TokenType::T_Operator); // Consume ';'
+    consume(TokenType::T_Operator, ";"); // Consume ';'
     
     return std::make_shared<ReturnStmt>(value, line, column);
 }
@@ -425,7 +438,7 @@ std::shared_ptr<Stmt> ASTBuilder::parseBreakStmt() {
     int column = currentToken().column;
     
     consume(TokenType::T_Break);
-    consume(TokenType::T_Operator); // Consume ';'
+    consume(TokenType::T_Operator, ";"); // Consume ';'
     
     return std::make_shared<BreakStmt>(line, column);
 }
@@ -436,7 +449,7 @@ std::shared_ptr<Stmt> ASTBuilder::parsePrintStmt() {
     int column = currentToken().column;
     
     consume(TokenType::T_Print);
-    consume(TokenType::T_Operator); // Consume '('
+    consume(TokenType::T_Operator, "("); // Consume '('
     
     auto printStmt = std::make_shared<PrintStmt>(line, column);
     
@@ -448,8 +461,8 @@ std::shared_ptr<Stmt> ASTBuilder::parsePrintStmt() {
         } while (match(TokenType::T_Operator) && currentToken().text == ",");
     }
     
-    consume(TokenType::T_Operator); // Consume ')'
-    consume(TokenType::T_Operator); // Consume ';'
+    consume(TokenType::T_Operator, ")"); // Consume ')'
+    consume(TokenType::T_Operator, ";"); // Consume ';'
     
     return printStmt;
 }
@@ -461,7 +474,7 @@ std::shared_ptr<Stmt> ASTBuilder::parseExprStmt() {
     
     auto expr = parseExpr();
     
-    consume(TokenType::T_Operator); // Consume ';'
+    consume(TokenType::T_Operator, ";"); // Consume ';'
     
     return std::make_shared<ExprStmt>(expr, line, column);
 }
@@ -480,7 +493,7 @@ std::shared_ptr<Expr> ASTBuilder::parseAssignment() {
     auto expr = parseLogicalOr();
     
     if (check(TokenType::T_Operator) && currentToken().text == "=") {
-        consume(TokenType::T_Operator); // Consume '='
+        consume(TokenType::T_Operator, "="); // Consume '='
         auto value = parseAssignment();
         expr = std::make_shared<AssignExpr>(expr, value, line, column);
     }
@@ -512,7 +525,7 @@ std::shared_ptr<Expr> ASTBuilder::parseLogicalAnd() {
     auto expr = parseEquality();
     
     while (check(TokenType::T_Operator) && currentToken().text == "&&") {
-        consume(TokenType::T_Operator); // Consume '&&'
+        consume(TokenType::T_Operator, "&&"); // Consume '&&'
         auto right = parseEquality();
         expr = std::make_shared<BinaryExpr>(BinaryExpr::And, expr, right, line, column);
     }
@@ -533,7 +546,7 @@ std::shared_ptr<Expr> ASTBuilder::parseEquality() {
             auto right = parseRelational();
             expr = std::make_shared<BinaryExpr>(BinaryExpr::Equal, expr, right, line, column);
         } else if (check(TokenType::T_Operator) && currentToken().text == "!=") {
-            consume(TokenType::T_Operator); // Consume '!='
+            consume(TokenType::T_Operator, "!="); // Consume '!='
             auto right = parseRelational();
             expr = std::make_shared<BinaryExpr>(BinaryExpr::NotEqual, expr, right, line, column);
         } else {
@@ -553,7 +566,7 @@ std::shared_ptr<Expr> ASTBuilder::parseRelational() {
     
     while (true) {
         if (check(TokenType::T_Operator) && currentToken().text == "<") {
-            consume(TokenType::T_Operator); // Consume '<'
+            consume(TokenType::T_Operator, "<"); // Consume '<'
             auto right = parseAdditive();
             expr = std::make_shared<BinaryExpr>(BinaryExpr::Less, expr, right, line, column);
         } else if (check(TokenType::T_LessEqual)) {
@@ -561,7 +574,7 @@ std::shared_ptr<Expr> ASTBuilder::parseRelational() {
             auto right = parseAdditive();
             expr = std::make_shared<BinaryExpr>(BinaryExpr::LessEqual, expr, right, line, column);
         } else if (check(TokenType::T_Operator) && currentToken().text == ">") {
-            consume(TokenType::T_Operator); // Consume '>'
+            consume(TokenType::T_Operator, ">"); // Consume '>'
             auto right = parseAdditive();
             expr = std::make_shared<BinaryExpr>(BinaryExpr::Greater, expr, right, line, column);
         } else if (check(TokenType::T_GreaterEqual)) {
@@ -585,11 +598,11 @@ std::shared_ptr<Expr> ASTBuilder::parseAdditive() {
     
     while (true) {
         if (check(TokenType::T_Operator) && currentToken().text == "+") {
-            consume(TokenType::T_Operator); // Consume '+'
+            consume(TokenType::T_Operator, "+"); // Consume '+'
             auto right = parseMultiplicative();
             expr = std::make_shared<BinaryExpr>(BinaryExpr::Plus, expr, right, line, column);
         } else if (check(TokenType::T_Operator) && currentToken().text == "-") {
-            consume(TokenType::T_Operator); // Consume '-'
+            consume(TokenType::T_Operator, "-"); // Consume '-'
             auto right = parseMultiplicative();
             expr = std::make_shared<BinaryExpr>(BinaryExpr::Minus, expr, right, line, column);
         } else {
@@ -609,15 +622,15 @@ std::shared_ptr<Expr> ASTBuilder::parseMultiplicative() {
     
     while (true) {
         if (check(TokenType::T_Operator) && currentToken().text == "*") {
-            consume(TokenType::T_Operator); // Consume '*'
+            consume(TokenType::T_Operator, "*"); // Consume '*'
             auto right = parseUnary();
             expr = std::make_shared<BinaryExpr>(BinaryExpr::Multiply, expr, right, line, column);
         } else if (check(TokenType::T_Operator) && currentToken().text == "/") {
-            consume(TokenType::T_Operator); // Consume '/'
+            consume(TokenType::T_Operator, "/"); // Consume '/'
             auto right = parseUnary();
             expr = std::make_shared<BinaryExpr>(BinaryExpr::Divide, expr, right, line, column);
         } else if (check(TokenType::T_Operator) && currentToken().text == "%") {
-            consume(TokenType::T_Operator); // Consume '%'
+            consume(TokenType::T_Operator, "%"); // Consume '%'
             auto right = parseUnary();
             expr = std::make_shared<BinaryExpr>(BinaryExpr::Modulo, expr, right, line, column);
         } else {
@@ -634,11 +647,11 @@ std::shared_ptr<Expr> ASTBuilder::parseUnary() {
     int column = currentToken().column;
     
     if (check(TokenType::T_Operator) && currentToken().text == "-") {
-        consume(TokenType::T_Operator); // Consume '-'
+        consume(TokenType::T_Operator, "-"); // Consume '-'
         auto right = parseUnary();
         return std::make_shared<UnaryExpr>(UnaryExpr::Minus, right, line, column);
     } else if (check(TokenType::T_Operator) && currentToken().text == "!") {
-        consume(TokenType::T_Operator); // Consume '!'
+        consume(TokenType::T_Operator, "!"); // Consume '!'
         auto right = parseUnary();
         return std::make_shared<UnaryExpr>(UnaryExpr::Not, right, line, column);
     }
@@ -655,7 +668,7 @@ std::shared_ptr<Expr> ASTBuilder::parseCall() {
     
     if (check(TokenType::T_Operator) && currentToken().text == "(") {
         // Handle function call
-        consume(TokenType::T_Operator); // Consume '('
+        consume(TokenType::T_Operator, "("); // Consume '('
         
         // Check if it's a function identifier
         if (auto var = std::dynamic_pointer_cast<VarExpr>(expr)) {
@@ -669,7 +682,7 @@ std::shared_ptr<Expr> ASTBuilder::parseCall() {
                 } while (match(TokenType::T_Operator) && currentToken().text == ",");
             }
             
-            consume(TokenType::T_Operator); // Consume ')'
+            consume(TokenType::T_Operator, ")"); // Consume ')'
             
             return callExpr;
         } else {
@@ -678,7 +691,7 @@ std::shared_ptr<Expr> ASTBuilder::parseCall() {
             while (!check(TokenType::T_Operator) || currentToken().text != ")") {
                 nextToken();
             }
-            consume(TokenType::T_Operator); // Consume ')'
+            consume(TokenType::T_Operator, ")"); // Consume ')'
             return expr;
         }
     }
@@ -721,15 +734,15 @@ std::shared_ptr<Expr> ASTBuilder::parsePrimary() {
     
     // Parse null literal
     if (check(TokenType::T_Operator) && currentToken().text == "null") {
-        consume(TokenType::T_Operator);
+        consume(TokenType::T_Operator, "null");
         return std::make_shared<NullLiteral>(line, column);
     }
     
     // Parse parenthesized expression
     if (check(TokenType::T_Operator) && currentToken().text == "(") {
-        consume(TokenType::T_Operator); // Consume '('
+        consume(TokenType::T_Operator, "("); // Consume '('
         auto expr = parseExpr();
-        consume(TokenType::T_Operator); // Consume ')'
+        consume(TokenType::T_Operator, ")"); // Consume ')'
         return expr;
     }
     
