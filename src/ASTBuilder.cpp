@@ -102,13 +102,11 @@ std::shared_ptr<Decl> ASTBuilder::parseDecl() {
     }
 }
 
-// Helper function to parse function declaration after the type and identifier
 std::shared_ptr<FunctionDecl> ASTBuilder::parseFunctionDecl(
     ASTNodeType* returnType, std::shared_ptr<Identifier> id, int line, int column) {
     
     auto funcDecl = std::make_shared<FunctionDecl>(returnType, id, line, column);
     
-    // Parse parameter list
     consume(TokenType::T_Operator); // Consume '('
     
     // Parse parameters
@@ -122,7 +120,6 @@ std::shared_ptr<FunctionDecl> ASTBuilder::parseFunctionDecl(
             
             if (!check(TokenType::T_Identifier)) {
                 std::string indentStr(currentToken().column-1, ' ');
-
                 std::cerr << "*** Error line " << currentToken().line << "." << std::endl
                 << sourceCode.at(currentToken().line-1) << std::endl 
                 << indentStr << "^" << std::endl
@@ -140,10 +137,21 @@ std::shared_ptr<FunctionDecl> ASTBuilder::parseFunctionDecl(
             
             funcDecl->addFormal(param);
             
-        } while (match(TokenType::T_Operator) && currentToken().text == ",");
+            // Only continue if we find a comma
+            if (!(check(TokenType::T_Operator) && currentToken().text == ",")) {
+                break;
+            }
+            consume(TokenType::T_Operator); // Consume ','
+            
+        } while (true);
     }
-    
-    consume(TokenType::T_Operator); // Consume ')'
+
+    // Now explicitly check for and consume the closing parenthesis
+    if (!check(TokenType::T_Operator) || currentToken().text != ")") {
+        std::cerr << "Error: Expected ')' at line " << currentToken().line << std::endl;
+    } else {
+        consume(TokenType::T_Operator); // Consume ')'
+    }
     
     // Parse function body
     auto body = parseBlock();
@@ -223,9 +231,11 @@ ASTNodeType* ASTBuilder::parseType() {
 std::shared_ptr<BlockStmt> ASTBuilder::parseBlock() {
     int line = currentToken().line;
     int column = currentToken().column;
+
+    // std::cout << currentToken().text << " is type: " << token_type_to_string(currentToken().type) << std::endl;
     
     if (!check(TokenType::T_Operator) || currentToken().text != "{") {
-        std::cerr << "Error: Expected '{' at line " << line << std::endl;
+        std::cerr << "Error: Expected '{' at line " << line-1 << std::endl;
         return nullptr;
     }
     

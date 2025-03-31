@@ -109,7 +109,12 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    ASTBuilder builder(tokens, sourceCode);
+    // for (const auto &element : tokens) {
+    //     std::cout << element.text << " ";
+    // }
+    // std::cout << std::endl;
+
+    ASTBuilder builder(tokens, sourceCode, true);
     std::shared_ptr<ASTRootNode> ast = builder.buildAST();
     ast->print(3);
         
