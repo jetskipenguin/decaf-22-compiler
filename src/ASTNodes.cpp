@@ -401,7 +401,7 @@ void FunctionDecl::setBody(std::shared_ptr<BlockStmt> functionBody) {
 
 void FunctionDecl::print(int indent) const {
     std::string indentStr(indent-3, ' ');
-    std::cout << "  " << this->line << indentStr << "FnDecl " << std::endl;
+    std::cout << "  " << this->line << indentStr << "FnDecl: " << std::endl;
     returnType->print(indent +3);
     id->print(indent +3);
 
@@ -426,9 +426,9 @@ void ASTRootNode::addDecl(std::shared_ptr<Decl> decl) {
 
 void ASTRootNode::print(int indent) const {
     std::string indentStr(indent, ' ');
+    std::cout << std::endl;
     std::cout << indentStr << "Program: " << std::endl;
     for (const auto& decl : decls) {
         decl->print(indent +3);
     }
-    std::cout << std::endl;
 }
