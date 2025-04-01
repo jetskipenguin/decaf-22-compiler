@@ -123,7 +123,7 @@ std::shared_ptr<FunctionDecl> ASTBuilder::parseFunctionDecl(
     
     auto funcDecl = std::make_shared<FunctionDecl>(returnType, id, line, column);
     
-    consume(TokenType::T_Operator, ")");
+    consume(TokenType::T_Operator, "("); // Consume '(' after function name
     
     // Parse parameters
     if (!check(TokenType::T_Operator) || currentToken().text != ")") {
