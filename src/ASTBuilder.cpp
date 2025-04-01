@@ -684,10 +684,16 @@ std::shared_ptr<Expr> ASTBuilder::parseCall() {
             
             // Parse arguments if any
             if (!check(TokenType::T_Operator) || currentToken().text != ")") {
-                do {
-                    auto arg = parseExpr();
+                // Parse the first argument
+                auto arg = parseExpr();
+                callExpr->addArg(arg);
+
+                // Parse all other args
+                while (check(TokenType::T_Operator) && currentToken().text == ",") {
+                    consume(TokenType::T_Operator, ",");
+                    arg = parseExpr();
                     callExpr->addArg(arg);
-                } while (match(TokenType::T_Operator) && currentToken().text == ",");
+                }
             }
             
             consume(TokenType::T_Operator, ")"); // Consume ')'
