@@ -13,6 +13,7 @@ enum class TokenType {
     T_Operator,
     T_Void,
     T_Int,
+    T_Bool,
     T_Double,
     T_String,
     T_While,
@@ -140,6 +141,7 @@ inline std::string token_to_string(Token token) {
         case TokenType::T_Print: return "T_Print";
         case TokenType::T_ReadInteger: return "T_ReadInteger";
         case TokenType::T_ReadLine: return "T_ReadLine";
+        case TokenType::T_Bool: return "T_Bool";
         default: return "Unknown";
     }
 }
@@ -168,6 +170,7 @@ inline std::string token_type_to_string(TokenType type) {
         case TokenType::T_Print: return "T_Print";
         case TokenType::T_ReadInteger: return "T_ReadInteger";
         case TokenType::T_ReadLine: return "T_ReadLine";
+        case TokenType::T_Bool: return "T_Bool";
         default: return "Unknown";
     }
 }

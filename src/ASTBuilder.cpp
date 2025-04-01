@@ -15,11 +15,6 @@ Token ASTBuilder::currentToken() const {
 
 
 void ASTBuilder::nextToken() {
-    if(verbose) {
-        std::cout << "Current index " << currentTokenIndex << ", num tokens: " << tokens.size() << std::endl;
-        std::cout << "On Token:" << tokens[currentTokenIndex].text << std::endl;
-    }
-    
     if (currentTokenIndex <= tokens.size()) {
         currentTokenIndex++;
         return;
@@ -42,6 +37,9 @@ bool ASTBuilder::check(TokenType type) const {
 
 void ASTBuilder::consume(TokenType type) {
     if (check(type)) {
+        if(verbose) {
+            std::cout << "Consumed " << currentToken().text << " as " << token_type_to_string(type) << std::endl;
+        }
         nextToken();
     } else {
         if(verbose) {
@@ -55,11 +53,14 @@ void ASTBuilder::consume(TokenType type) {
 
 void ASTBuilder::consume(TokenType type, std::string character) {
     if(check(type) && currentToken().text == character) {
+        if(verbose) {
+            std::cout << "Consumed " << currentToken().text << " as " << token_type_to_string(type) << " " << character << std::endl;
+        }
         nextToken();
     } else {
         if(verbose) {
             std::cerr << "Error: Expected " <<  token_type_to_string(type) << " with character:  " << character
-                 << " but got " << token_type_to_string(currentToken().type)
+                 << " but got " << token_type_to_string(currentToken().type) << " " << currentToken().text
                  << " at line " << currentToken().line 
                  << ", column " << currentToken().column << std::endl;
         }
@@ -123,11 +124,11 @@ std::shared_ptr<FunctionDecl> ASTBuilder::parseFunctionDecl(
     
     auto funcDecl = std::make_shared<FunctionDecl>(returnType, id, line, column);
     
-    consume(TokenType::T_Operator, "("); // Consume '(' after function name
+    consume(TokenType::T_Operator, "(");
     
     // Parse parameters
     if (!check(TokenType::T_Operator) || currentToken().text != ")") {
-        do {
+        while(true) {
             ASTNodeType* paramType = parseType();
             if (!paramType) {
                 std::cerr << "Error: Expected parameter type at line " << currentToken().line << std::endl;
@@ -153,13 +154,14 @@ std::shared_ptr<FunctionDecl> ASTBuilder::parseFunctionDecl(
             
             funcDecl->addFormal(param);
             
-            // Only continue if we find a comma
-            if (!(check(TokenType::T_Operator) && currentToken().text == ",")) {
+            if (currentToken().text != ",") {
+                if(verbose) {
+                    std::cout << "Exiting function declaration" << std::endl;
+                }
                 break;
             }
-            consume(TokenType::T_Operator, ","); // Consume ','
-            
-        } while (true);
+            consume(TokenType::T_Operator, ",");
+        }
     }
 
     // Now explicitly check for and consume the closing parenthesis
@@ -214,7 +216,7 @@ std::shared_ptr<VarDecl> ASTBuilder::parseVarDecl() {
     
     // Check for initialization
     if (check(TokenType::T_Operator) && currentToken().text == "=") {
-        consume(TokenType::T_Operator, ","); // Consume '='
+        consume(TokenType::T_Operator, "="); // Consume '='
         init = parseExpr();
     }
     
@@ -234,7 +236,7 @@ ASTNodeType* ASTBuilder::parseType() {
         return ASTNodeType::intType;
     } else if (match(TokenType::T_Double)) {
         return ASTNodeType::doubleType;
-    } else if (match(TokenType::T_BoolConstant)) {
+    } else if (match(TokenType::T_Bool)) {
         return ASTNodeType::boolType;
     } else if (match(TokenType::T_String)) {
         return ASTNodeType::stringType;
@@ -249,7 +251,7 @@ std::shared_ptr<BlockStmt> ASTBuilder::parseBlock() {
     int column = currentToken().column;
 
     if (!check(TokenType::T_Operator) || currentToken().text != "{") {
-        std::cerr << "Error: Expected '{' at line " << line-1 << std::endl;
+        std::cerr << "Error: Expected '{' at line " << line << std::endl; // Removed line-1
         return nullptr;
     }
     
@@ -317,6 +319,10 @@ std::shared_ptr<Stmt> ASTBuilder::parseStmt() {
     if (check(TokenType::T_Print)) {
         return parsePrintStmt();
     }
+
+    // if (check(TokenType::T_ReadInteger)) {
+    //     return parseReadIntegerStmt();
+    // }
     
     // Check for variable declaration
     TokenType type = currentToken().type;
@@ -458,7 +464,9 @@ std::shared_ptr<Stmt> ASTBuilder::parsePrintStmt() {
         do {
             auto arg = parseExpr();
             printStmt->addArg(arg);
-        } while (match(TokenType::T_Operator) && currentToken().text == ",");
+            if (!check(TokenType::T_Operator) || currentToken().text != ",") break;
+            consume(TokenType::T_Operator, ",");
+        } while (true);
     }
     
     consume(TokenType::T_Operator, ")"); // Consume ')'
@@ -752,6 +760,22 @@ std::shared_ptr<Expr> ASTBuilder::parsePrimary() {
         consume(TokenType::T_Identifier);
         auto id = std::make_shared<Identifier>(name, line, column);
         return std::make_shared<VarExpr>(id, line, column);
+    }
+
+    if (check(TokenType::T_ReadInteger)) {
+        int line = currentToken().line;  // Get position before consuming
+        int column = currentToken().column;
+        
+        // Create synthetic identifier for the built-in function
+        auto id = std::make_shared<Identifier>("ReadInteger", line, column);
+
+        consume(TokenType::T_ReadInteger);
+        
+        // Parse argument list (should be empty)
+        consume(TokenType::T_Operator, "(");
+        consume(TokenType::T_Operator, ")");
+        
+        return std::make_shared<CallExpr>(id, line, column);
     }
     
     // Error case
