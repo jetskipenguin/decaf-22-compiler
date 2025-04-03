@@ -532,8 +532,8 @@ std::shared_ptr<Expr> ASTBuilder::parseLogicalAnd() {
     
     auto expr = parseEquality();
     
-    while (check(TokenType::T_Operator) && currentToken().text == "&&") {
-        consume(TokenType::T_Operator, "&&"); // Consume '&&'
+    while (check(TokenType::T_And)) {
+        consume(TokenType::T_And); // Consume '&&'
         auto right = parseEquality();
         expr = std::make_shared<BinaryExpr>(BinaryExpr::And, expr, right, line, column);
     }
@@ -553,8 +553,8 @@ std::shared_ptr<Expr> ASTBuilder::parseEquality() {
             consume(TokenType::T_Equal);
             auto right = parseRelational();
             expr = std::make_shared<BinaryExpr>(BinaryExpr::Equal, expr, right, line, column);
-        } else if (check(TokenType::T_Operator) && currentToken().text == "!=") {
-            consume(TokenType::T_Operator, "!="); // Consume '!='
+        } else if (check(TokenType::T_NotEqual)) {
+            consume(TokenType::T_NotEqual); // Consume '!='
             auto right = parseRelational();
             expr = std::make_shared<BinaryExpr>(BinaryExpr::NotEqual, expr, right, line, column);
         } else {

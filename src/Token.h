@@ -24,7 +24,9 @@ enum class TokenType {
     T_Or,
     T_LessEqual,
     T_GreaterEqual,
+    T_NotEqual,
     T_Equal,
+    T_And,
     T_Print,
     T_ReadInteger,
     T_ReadLine,
@@ -142,6 +144,8 @@ inline std::string token_to_string(Token token) {
         case TokenType::T_ReadInteger: return "T_ReadInteger";
         case TokenType::T_ReadLine: return "T_ReadLine";
         case TokenType::T_Bool: return "T_Bool";
+        case TokenType::T_NotEqual: return "T_NotEqual";
+        case TokenType::T_And: return "T_And";
         default: return "Unknown";
     }
 }
@@ -171,6 +175,8 @@ inline std::string token_type_to_string(TokenType type) {
         case TokenType::T_ReadInteger: return "T_ReadInteger";
         case TokenType::T_ReadLine: return "T_ReadLine";
         case TokenType::T_Bool: return "T_Bool";
+        case TokenType::T_NotEqual: return "T_NotEqual";
+        case TokenType::T_And: return "T_And";
         default: return "Unknown";
     }
 }
