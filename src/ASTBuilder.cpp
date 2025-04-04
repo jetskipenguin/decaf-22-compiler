@@ -137,11 +137,11 @@ std::shared_ptr<FunctionDecl> ASTBuilder::parseFunctionDecl(
             
             if (!check(TokenType::T_Identifier)) {
                 std::string indentStr(currentToken().column-1, ' ');
-                std::cerr << "*** Error line " << currentToken().line << "." << std::endl
+                std::cout << std::endl << "*** Error line " << currentToken().line << "." << std::endl
                 << sourceCode.at(currentToken().line-1) << std::endl 
                 << indentStr << "^" << std::endl
-                << "*** syntax error" << std::endl;
-                break;
+                << "*** syntax error" << std::endl << std::endl;
+                throw std::runtime_error("Syntax error");
             }
             
             std::string paramName = currentToken().text;
