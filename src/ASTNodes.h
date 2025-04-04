@@ -249,6 +249,7 @@ public:
     using Node::Node;
 };
 
+// Var declaration that includes assignment
 class VarDecl : public Decl {
 public:
     ASTNodeType* type;
@@ -260,6 +261,7 @@ public:
     void print(int indent = 0) const override;
 };
 
+// Var declaration that doesn't include assignment
 class VarDeclStmt : public Stmt {
 public:
     std::shared_ptr<VarDecl> varDecl;

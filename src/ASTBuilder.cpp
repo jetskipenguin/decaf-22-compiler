@@ -283,7 +283,7 @@ std::shared_ptr<BlockStmt> ASTBuilder::parseBlock() {
     return block;
 }
 
-// Stmt -> VarDecl | Block | IfStmt | WhileStmt | ForStmt | ReturnStmt | BreakStmt | PrintStmt | ExprStmt
+// Stmt ->  Block | IfStmt | WhileStmt | ForStmt | ReturnStmt | BreakStmt | PrintStmt | ExprStmt | VarDeclStatement
 std::shared_ptr<Stmt> ASTBuilder::parseStmt() {
     // Check for block statement
     if (check(TokenType::T_Operator) && currentToken().text == "{") {
@@ -333,7 +333,6 @@ std::shared_ptr<Stmt> ASTBuilder::parseStmt() {
         auto varDecl = parseVarDecl();
         if (!varDecl) return nullptr;
         
-        // Wrap VarDecl in a VarDeclStmt (which is a Stmt)
         return std::make_shared<VarDeclStmt>(varDecl, varDecl->line, varDecl->column);
     }
     
