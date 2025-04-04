@@ -50,7 +50,11 @@ Identifier::Identifier(const std::string& name, int line, int column)
     : Node(line, column), name(name) {}
 
 void Identifier::print(int indent) const {
-    std::cout << std::string(indent, ' ') << "Identifier: " << name << std::endl;
+    if (indent == 0) {
+        std::cout << "  " << line << "      Identifier: " << name << std::endl;
+    } else {
+        std::cout << std::string(indent, ' ') << "Identifier: " << name << std::endl;
+    }
 }
 
 IntLiteral::IntLiteral(int value, int line, int column)
@@ -94,7 +98,11 @@ ASTNodeType* StringLiteral::getType() const {
 }
 
 void StringLiteral::print(int indent) const {
-    std::cout << std::string(indent, ' ') << "StringConstant: " << value << std::endl;
+    if (indent == 4) {
+        std::cout << "  " << line << "         (args) StringConstant: " << value << std::endl;
+    } else {
+        std::cout << std::string(indent, ' ') << "StringConstant: " << value << std::endl;
+    }
 }
 
 NullLiteral::NullLiteral(int line, int column)
@@ -234,7 +242,6 @@ void CallExpr::print(int indent) const {
     std::cout << std::string(indent, ' ') << "Call: " << std::endl;
     id->print(indent + 3);
     for (const auto& arg : args) {
-        std::cout << std::string(indent, ' ') << "  (actuals) " << std::endl;
         arg->print(indent + 4);
     }
 }
@@ -351,7 +358,6 @@ void PrintStmt::addArg(std::shared_ptr<Expr> arg) {
 void PrintStmt::print(int indent) const {
     std::cout << std::string(indent, ' ') << "PrintStmt: " << std::endl;
     for (const auto& arg : args) {
-        std::cout << std::string(indent, ' ') << "  (args) " << std::endl;
         arg->print(indent + 4);
     }
 }
