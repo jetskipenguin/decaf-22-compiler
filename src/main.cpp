@@ -124,7 +124,7 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
-    ast->print(3);
+    ast->print(0);
         
     return 0;
 }

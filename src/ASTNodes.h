@@ -21,9 +21,13 @@ public:
 };
 
 class Expr : public Node {
+protected:
+    bool isArgument = false;
 public:
-    using Node::Node;
+    Expr(int line, int column) : Node(line, column) {}
     virtual ASTNodeType* getType() const = 0;
+    void setIsArgument(bool isArg) { isArgument = isArg; }
+    bool getIsArgument() const { return isArgument; }
 };
 
 class ASTNodeType : public Node {
