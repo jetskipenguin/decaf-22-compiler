@@ -114,8 +114,16 @@ int main(int argc, char* argv[]) {
     // }
     // std::cout << std::endl;
 
-    ASTBuilder builder(tokens, sourceCode, true);
-    std::shared_ptr<ASTRootNode> ast = builder.buildAST();
+    ASTBuilder builder(tokens, sourceCode, false);
+    std::shared_ptr<ASTRootNode> ast;
+
+    try {
+        ast = builder.buildAST();
+    }
+    catch(std::runtime_error exception) {
+        return 0;
+    }
+
     ast->print(3);
         
     return 0;

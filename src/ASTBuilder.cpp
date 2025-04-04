@@ -1,5 +1,6 @@
 #include <numeric>
 #include "ASTBuilder.h"
+#include <algorithm>
 
 // Helper methods for token handling
 Token ASTBuilder::currentToken() const {
@@ -779,13 +780,19 @@ std::shared_ptr<Expr> ASTBuilder::parsePrimary() {
         return std::make_shared<CallExpr>(id, line, column);
     }
     
-    // Error case
-    std::cerr << "Error: Unexpected token '" << currentToken().text 
-              << "' at line " << line << std::endl;
-    nextToken(); // Skip the unexpected token
+    // Remove white space
+    std::string srcLine = sourceCode.at(line-1);
+    std::string::iterator end_pos = std::remove(srcLine.begin(), srcLine.end(), ' ');
+    srcLine.erase(end_pos, srcLine.end());
+
+    // Print syntax error
+    std::string errorHighlight(srcLine.size(), '^');
+    std::cout << std::endl << "*** Error line " << line << "." << std::endl 
+              << sourceCode.at(line-1) << std::endl 
+              << "    " << errorHighlight<< std::endl
+              << "*** syntax error" << std::endl << std::endl;
     
-    // Return a placeholder expression in case of error
-    return std::make_shared<IntLiteral>(0, line, column);
+    throw std::runtime_error("Syntax error");
 }
 
 // Usage example:
