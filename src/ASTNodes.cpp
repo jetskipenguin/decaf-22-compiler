@@ -424,9 +424,10 @@ void FunctionDecl::print(int indent) const {
     id->print(indent +3);
     
     if (formals.size() > 0) {
-        std::cout << std::string(indent +3, ' ') << "Formals:" << std::endl;
         for (const auto& formal : formals) {
-            formal->print(indent + 6);  // Adjust indentation as needed
+            std::cout << "  " << line << indentStr << "(formals) VarDecl:" << std::endl ;
+            formal->type->print(indent + 2);
+            formal->id->print(indent + 2);
         }
     }
 
