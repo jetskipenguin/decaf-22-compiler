@@ -50,11 +50,7 @@ Identifier::Identifier(const std::string& name, int line, int column)
     : Node(line, column), name(name) {}
 
 void Identifier::print(int indent) const {
-    if (indent == 0) {
-        std::cout << "  " << line << "      Identifier: " << name << std::endl;
-    } else {
-        std::cout << std::string(indent, ' ') << "Identifier: " << name << std::endl;
-    }
+    std::cout << "  " << line << std::string(indent, ' ') << "Identifier: " << name << std::endl;
 }
 
 IntLiteral::IntLiteral(int value, int line, int column)
@@ -65,7 +61,7 @@ ASTNodeType* IntLiteral::getType() const {
 }
 
 void IntLiteral::print(int indent) const {
-    std::cout << std::string(indent, ' ') << "IntConstant: " << value << std::endl;
+    std::cout << "  " << line << std::string(indent, ' ') << "IntConstant: " << value << std::endl;
 }
 
 DoubleLiteral::DoubleLiteral(double value, int line, int column)
@@ -76,7 +72,7 @@ ASTNodeType* DoubleLiteral::getType() const {
 }
 
 void DoubleLiteral::print(int indent) const {
-    std::cout << std::string(indent, ' ') << "DoubleConstant: " << value << std::endl;
+    std::cout << "  " << line << std::string(indent, ' ') << "DoubleConstant: " << value << std::endl;
 }
 
 BoolLiteral::BoolLiteral(bool value, int line, int column)
@@ -87,7 +83,7 @@ ASTNodeType* BoolLiteral::getType() const {
 }
 
 void BoolLiteral::print(int indent) const {
-    std::cout << std::string(indent, ' ') << "BoolConstant: " << (value ? "true" : "false") << std::endl;
+    std::cout << "  " << line << std::string(indent, ' ') << "BoolConstant: " << (value ? "true" : "false") << std::endl;
 }
 
 StringLiteral::StringLiteral(const std::string& value, int line, int column)
@@ -98,7 +94,7 @@ ASTNodeType* StringLiteral::getType() const {
 }
 
 void StringLiteral::print(int indent) const {
-    if (indent == 4) {
+    if (indent >= 4) {
         std::cout << "  " << line << "         (args) StringConstant: " << value << std::endl;
     } else {
         std::cout << std::string(indent, ' ') << "StringConstant: " << value << std::endl;
@@ -124,7 +120,7 @@ ASTNodeType* VarExpr::getType() const {
 }
 
 void VarExpr::print(int indent) const {
-    std::cout << std::string(indent, ' ') << "FieldAccess: " << std::endl;
+    std::cout << "  " << line << std::string(indent, ' ') << "FieldAccess: " << std::endl;
     id->print(indent + 3);
 }
 
@@ -175,10 +171,10 @@ void BinaryExpr::print(int indent) const {
         default: exprType = "BinaryExpr";
     }
     
-    std::cout << std::string(indent, ' ') << exprType << ": " << std::endl;
+    std::cout << "  " << line << std::string(indent, ' ') << exprType << ": " << std::endl;
     left->print(indent + 3);
     
-    std::cout << std::string(indent, ' ') << "  Operator: ";
+    std::cout << "  " << line << std::string(indent, ' ') << "  Operator: ";
     switch(op) { 
         case Plus: std::cout << "+"; break;
         case Minus: std::cout << "-"; break;
@@ -221,8 +217,8 @@ ASTNodeType* UnaryExpr::getType() const {
 }
 
 void UnaryExpr::print(int indent) const {
-    std::cout << std::string(indent, ' ') << "UnaryExpr: " << std::endl;
-    std::cout << std::string(indent, ' ') << "  Operator: " 
+    std::cout << "  " << line << std::string(indent, ' ') << "LogicalExpr: " << std::endl;
+    std::cout << "  " << line << std::string(indent, ' ') << "  Operator: " 
               << (op == Minus ? "-" : "!") << std::endl;
     expr->print(indent + 3);
 }
@@ -239,10 +235,10 @@ ASTNodeType* CallExpr::getType() const {
 }
 
 void CallExpr::print(int indent) const {
-    std::cout << std::string(indent, ' ') << "Call: " << std::endl;
-    id->print(indent + 3);
+    std::cout << "  " << line << std::string(indent, ' ') << "Call: " << std::endl;
+    id->print(indent+3);
     for (const auto& arg : args) {
-        arg->print(indent + 4);
+        arg->print(indent + 3);
     }
 }
 
@@ -255,9 +251,9 @@ ASTNodeType* AssignExpr::getType() const {
 }
 
 void AssignExpr::print(int indent) const {
-    std::cout << std::string(indent, ' ') << "AssignExpr: " << std::endl;
+    std::cout << "  " << line << std::string(indent, ' ') << "AssignExpr: " << std::endl;
     left->print(indent + 3);
-    std::cout << std::string(indent, ' ') << "  Operator: =" << std::endl;
+    std::cout << "  " << line << std::string(indent, ' ') << "   Operator: =" << std::endl;
     right->print(indent + 3);
 }
 
@@ -337,7 +333,7 @@ ReturnStmt::ReturnStmt(std::shared_ptr<Expr> expr, int line, int column)
     : Stmt(line, column), expr(expr) {}
 
 void ReturnStmt::print(int indent) const {
-    std::cout << std::string(indent, ' ') << "ReturnStmt: " << std::endl;
+    std::cout << "  " << line << std::string(indent, ' ') << "ReturnStmt: " << std::endl;
     if (expr) {
         expr->print(indent + 3);
     }
@@ -369,7 +365,7 @@ ASTNodeType* ReadIntegerExpr::getType() const {
 }
 
 void ReadIntegerExpr::print(int indent) const {
-    std::cout << std::string(indent, ' ') << "ReadIntegerExpr: " << std::endl;
+    std::cout << "  " << line << std::string(indent, ' ') << "ReadIntegerExpr: " << std::endl;
 }
 
 VarDecl::VarDecl(ASTNodeType* type, std::shared_ptr<Identifier> id,
@@ -377,11 +373,11 @@ VarDecl::VarDecl(ASTNodeType* type, std::shared_ptr<Identifier> id,
     : Decl(line, column), type(type), id(id), init(init) {}
 
 void VarDecl::print(int indent) const {
-    std::cout << std::string(indent-3, ' ') << line << "   VarDecl: " << std::endl;
+    std::cout << "  " << line << std::string(indent-3, ' ') << "   VarDecl: " << std::endl;
     type->print(indent + 3);
     id->print(indent + 3);
     if (init) {
-        std::cout << std::string(indent-3, ' ') << line << "   Init: " << std::endl;
+        std::cout << "  " << line << std::string(indent-3, ' ') << "   Init: " << std::endl;
         init->print(indent + 4);
     }
 }
@@ -406,13 +402,13 @@ void FunctionDecl::setBody(std::shared_ptr<BlockStmt> functionBody) {
 }
 
 void FunctionDecl::print(int indent) const {
-    std::cout << std::string(indent-3, ' ') << line << "   FnDecl: " << std::endl;
+    std::cout << "  " << line << std::string(indent-3, ' ') <<  "   FnDecl: " << std::endl;
     std::cout << std::string(indent, ' ') << "(return type) Type: " 
               << returnType->typeName() << std::endl;
     id->print(indent);
     
     for (const auto& formal : formals) {
-        std::cout << std::string(indent-3, ' ') << formal->line 
+        std::cout << "  " << formal->line  << std::string(indent-3, ' ')
                   << "   (formals) VarDecl: " << std::endl;
         formal->type->print(indent + 3);
         formal->id->print(indent + 3);
