@@ -1,9 +1,9 @@
 #include "ASTNodes.h"
+#include <iostream>
+#include <string>
 
-// Node implementation
 Node::Node(int line, int column) : line(line), column(column) {}
 
-// ASTNodeType implementations
 ASTNodeType* ASTNodeType::voidType = new ASTNodeType(ASTNodeType::Void);
 ASTNodeType* ASTNodeType::intType = new ASTNodeType(ASTNodeType::Int);
 ASTNodeType* ASTNodeType::doubleType = new ASTNodeType(ASTNodeType::Double);
@@ -24,7 +24,7 @@ bool ASTNodeType::isEquivalentTo(const ASTNodeType* other) const {
 }
 
 bool ASTNodeType::isAssignableTo(const ASTNodeType* other) const {
-    if (kind == Null) return true;  // null can be assigned to any reference type
+    if (kind == Null) return true;
     if (kind == Error || other->kind == Error) return false;
     return isEquivalentTo(other);
 }
@@ -42,22 +42,17 @@ const char* ASTNodeType::typeName() const {
     }
 }
 
-
 void ASTNodeType::print(int indent) const {
-    std::string indentStr(indent, ' ');
-    std::cout << indentStr << "Type: " << typeName() << std::endl;
+    std::cout << std::string(indent, ' ') << "Type: " << typeName() << std::endl;
 }
 
-// Identifier implementation
 Identifier::Identifier(const std::string& name, int line, int column)
     : Node(line, column), name(name) {}
 
 void Identifier::print(int indent) const {
-    std::string indentStr(indent-3, ' ');
-    std::cout << "  " << this->line << indentStr << "Identifier: " << name << std::endl;
+    std::cout << std::string(indent, ' ') << "Identifier: " << name << std::endl;
 }
 
-// Literal expressions
 IntLiteral::IntLiteral(int value, int line, int column)
     : LiteralExpr(line, column), value(value) {}
 
@@ -66,8 +61,7 @@ ASTNodeType* IntLiteral::getType() const {
 }
 
 void IntLiteral::print(int indent) const {
-    std::string indentStr(indent, ' ');
-    std::cout << indentStr << "IntLiteral: " << value << std::endl;
+    std::cout << std::string(indent, ' ') << "IntConstant: " << value << std::endl;
 }
 
 DoubleLiteral::DoubleLiteral(double value, int line, int column)
@@ -78,8 +72,7 @@ ASTNodeType* DoubleLiteral::getType() const {
 }
 
 void DoubleLiteral::print(int indent) const {
-    std::string indentStr(indent, ' ');
-    std::cout << indentStr << "DoubleLiteral: " << value << std::endl;
+    std::cout << std::string(indent, ' ') << "DoubleConstant: " << value << std::endl;
 }
 
 BoolLiteral::BoolLiteral(bool value, int line, int column)
@@ -90,8 +83,7 @@ ASTNodeType* BoolLiteral::getType() const {
 }
 
 void BoolLiteral::print(int indent) const {
-    std::string indentStr(indent, ' ');
-    std::cout << indentStr << "BoolLiteral: " << (value ? "true" : "false") << std::endl;
+    std::cout << std::string(indent, ' ') << "BoolConstant: " << (value ? "true" : "false") << std::endl;
 }
 
 StringLiteral::StringLiteral(const std::string& value, int line, int column)
@@ -102,8 +94,7 @@ ASTNodeType* StringLiteral::getType() const {
 }
 
 void StringLiteral::print(int indent) const {
-    std::string indentStr(indent, ' ');
-    std::cout << indentStr << "StringConstant: " << value << std::endl;
+    std::cout << std::string(indent, ' ') << "StringConstant: " << value << std::endl;
 }
 
 NullLiteral::NullLiteral(int line, int column)
@@ -114,11 +105,9 @@ ASTNodeType* NullLiteral::getType() const {
 }
 
 void NullLiteral::print(int indent) const {
-    std::string indentStr(indent, ' ');
-    std::cout << indentStr << "NullLiteral" << std::endl;
+    std::cout << std::string(indent, ' ') << "NullLiteral" << std::endl;
 }
 
-// Variable reference
 VarExpr::VarExpr(std::shared_ptr<Identifier> id, int line, int column, ASTNodeType* type)
     : Expr(line, column), id(id), varType(type) {}
 
@@ -127,12 +116,10 @@ ASTNodeType* VarExpr::getType() const {
 }
 
 void VarExpr::print(int indent) const {
-    std::string indentStr(indent, ' ');
-    std::cout << indentStr << "FieldAccess: " << std::endl;
+    std::cout << std::string(indent, ' ') << "FieldAccess: " << std::endl;
     id->print(indent + 3);
 }
 
-// Binary operation expression
 BinaryExpr::BinaryExpr(BinaryOp op, std::shared_ptr<Expr> left, 
                       std::shared_ptr<Expr> right, int line, int column)
     : Expr(line, column), op(op), left(left), right(right) {}
@@ -145,7 +132,6 @@ ASTNodeType* BinaryExpr::getType() const {
         return ASTNodeType::errorType;
     }
 
-    // Handle numeric promotions
     if (leftType->isNumeric() && rightType->isNumeric()) {
         if (leftType->kind == ASTNodeType::Double || 
             rightType->kind == ASTNodeType::Double) {
@@ -154,12 +140,10 @@ ASTNodeType* BinaryExpr::getType() const {
         return ASTNodeType::intType;
     }
 
-    // Handle boolean operations
     if (op == And || op == Or) {
         return ASTNodeType::boolType;
     }
 
-    // Handle comparisons
     if (op == Equal || op == NotEqual || 
         op == Less || op == LessEqual || 
         op == Greater || op == GreaterEqual) {
@@ -170,7 +154,6 @@ ASTNodeType* BinaryExpr::getType() const {
 }
 
 void BinaryExpr::print(int indent) const {
-    std::string indentStr(indent, ' ');
     std::string exprType;
     switch (op) {
         case Plus: case Minus: case Multiply: case Divide: case Modulo:
@@ -184,18 +167,31 @@ void BinaryExpr::print(int indent) const {
         default: exprType = "BinaryExpr";
     }
     
-    std::cout << indentStr << exprType << ": " << std::endl;
-    left->print(indent +3);
+    std::cout << std::string(indent, ' ') << exprType << ": " << std::endl;
+    left->print(indent + 3);
     
-    // Print operator
-    std::cout << indentStr << "  Operator: ";
-    switch(op) { /* Add cases for each operator symbol */ }
+    std::cout << std::string(indent, ' ') << "  Operator: ";
+    switch(op) { 
+        case Plus: std::cout << "+"; break;
+        case Minus: std::cout << "-"; break;
+        case Multiply: std::cout << "*"; break;
+        case Divide: std::cout << "/"; break;
+        case Modulo: std::cout << "%"; break;
+        case Less: std::cout << "<"; break;
+        case LessEqual: std::cout << "<="; break;
+        case Greater: std::cout << ">"; break;
+        case GreaterEqual: std::cout << ">="; break;
+        case Equal: std::cout << "=="; break;
+        case NotEqual: std::cout << "!="; break;
+        case And: std::cout << "&&"; break;
+        case Or: std::cout << "||"; break;
+        default: std::cout << "unknown_op"; break;
+    }
     std::cout << std::endl;
     
-    right->print(indent +3);
+    right->print(indent + 3);
 }
 
-// Unary operation expression
 UnaryExpr::UnaryExpr(UnaryOp op, std::shared_ptr<Expr> expr, int line, int column)
     : Expr(line, column), op(op), expr(expr) {}
 
@@ -217,13 +213,12 @@ ASTNodeType* UnaryExpr::getType() const {
 }
 
 void UnaryExpr::print(int indent) const {
-    std::string indentStr(indent, ' ');
-    std::string opStr = (op == Minus) ? "-" : "!";
-    std::cout << indentStr << "UnaryExpr: " << opStr << std::endl;
-    expr->print(indent +3);
+    std::cout << std::string(indent, ' ') << "UnaryExpr: " << std::endl;
+    std::cout << std::string(indent, ' ') << "  Operator: " 
+              << (op == Minus ? "-" : "!") << std::endl;
+    expr->print(indent + 3);
 }
 
-// Function call expression
 CallExpr::CallExpr(std::shared_ptr<Identifier> id, int line, int column)
     : Expr(line, column), id(id), returnType(nullptr) {}
 
@@ -236,15 +231,14 @@ ASTNodeType* CallExpr::getType() const {
 }
 
 void CallExpr::print(int indent) const {
-    std::string indentStr(indent, ' ');
-    std::cout << indentStr << "Call: " << std::endl;
-    id->print(indent +3);
+    std::cout << std::string(indent, ' ') << "Call: " << std::endl;
+    id->print(indent + 3);
     for (const auto& arg : args) {
-        std::cout << indentStr << "  (actuals) ";
+        std::cout << std::string(indent, ' ') << "  (actuals) " << std::endl;
         arg->print(indent + 4);
     }
 }
-// Assignment expression
+
 AssignExpr::AssignExpr(std::shared_ptr<Expr> left, 
                       std::shared_ptr<Expr> right, int line, int column)
     : Expr(line, column), left(left), right(right) {}
@@ -254,21 +248,17 @@ ASTNodeType* AssignExpr::getType() const {
 }
 
 void AssignExpr::print(int indent) const {
-    std::string indentStr(indent, ' ');
-    std::cout << indentStr << "AssignExpr: " << std::endl;
+    std::cout << std::string(indent, ' ') << "AssignExpr: " << std::endl;
     left->print(indent + 3);
-    std::cout << indentStr << "  Operator: =" << std::endl;
+    std::cout << std::string(indent, ' ') << "  Operator: =" << std::endl;
     right->print(indent + 3);
 }
 
-// Statement implementations
 ExprStmt::ExprStmt(std::shared_ptr<Expr> expr, int line, int column)
     : Stmt(line, column), expr(expr) {}
 
 void ExprStmt::print(int indent) const {
-    std::string indentStr(indent, ' ');
-    std::cout << indentStr << "ExprStmt: " << std::endl;
-    expr->print(indent +3);
+    expr->print(indent);
 }
 
 BlockStmt::BlockStmt(int line, int column) : Stmt(line, column) {}
@@ -278,8 +268,7 @@ void BlockStmt::addStmt(std::shared_ptr<Stmt> stmt) {
 }
 
 void BlockStmt::print(int indent) const {
-    std::string indentStr(indent, ' ');
-    std::cout << indentStr << "(body) StmtBlock: " << std::endl;
+    std::cout << std::string(indent, ' ') << "(body) StmtBlock: " << std::endl;
     for (const auto& stmt : stmts) {
         stmt->print(indent + 3);
     }
@@ -290,14 +279,13 @@ IfStmt::IfStmt(std::shared_ptr<Expr> cond, std::shared_ptr<Stmt> thenStmt,
     : Stmt(line, column), cond(cond), thenStmt(thenStmt), elseStmt(elseStmt) {}
 
 void IfStmt::print(int indent) const {
-    std::string indentStr(indent, ' ');
-    std::cout << indentStr << "IfStmt: " << std::endl;
-    std::cout << indentStr << "  Condition: " << std::endl;
+    std::cout << std::string(indent, ' ') << "IfStmt: " << std::endl;
+    std::cout << std::string(indent, ' ') << "  Condition: " << std::endl;
     cond->print(indent + 4);
-    std::cout << indentStr << "  Then: " << std::endl;
+    std::cout << std::string(indent, ' ') << "  Then: " << std::endl;
     thenStmt->print(indent + 4);
     if (elseStmt) {
-        std::cout << indentStr << "  Else: " << std::endl;
+        std::cout << std::string(indent, ' ') << "  Else: " << std::endl;
         elseStmt->print(indent + 4);
     }
 }
@@ -307,11 +295,10 @@ WhileStmt::WhileStmt(std::shared_ptr<Expr> cond,
     : Stmt(line, column), cond(cond), body(body) {}
 
 void WhileStmt::print(int indent) const {
-    std::string indentStr(indent, ' ');
-    std::cout << indentStr << "WhileStmt: " << std::endl;
-    std::cout << indentStr << "  Condition: " << std::endl;
+    std::cout << std::string(indent, ' ') << "WhileStmt: " << std::endl;
+    std::cout << std::string(indent, ' ') << "  Condition: " << std::endl;
     cond->print(indent + 4);
-    std::cout << indentStr << "  Body: " << std::endl;
+    std::cout << std::string(indent, ' ') << "  Body: " << std::endl;
     body->print(indent + 4);
 }
 
@@ -322,21 +309,20 @@ ForStmt::ForStmt(std::shared_ptr<Expr> init, std::shared_ptr<Expr> cond,
       update(update), body(body) {}
 
 void ForStmt::print(int indent) const {
-    std::string indentStr(indent, ' ');
-    std::cout << indentStr << "ForStmt: " << std::endl;
+    std::cout << std::string(indent, ' ') << "ForStmt: " << std::endl;
     if (init) {
-        std::cout << indentStr << "  Init: " << std::endl;
+        std::cout << std::string(indent, ' ') << "  Init: " << std::endl;
         init->print(indent + 4);
     }
     if (cond) {
-        std::cout << indentStr << "  Condition: " << std::endl;
+        std::cout << std::string(indent, ' ') << "  Condition: " << std::endl;
         cond->print(indent + 4);
     }
     if (update) {
-        std::cout << indentStr << "  Update: " << std::endl;
+        std::cout << std::string(indent, ' ') << "  Update: " << std::endl;
         update->print(indent + 4);
     }
-    std::cout << indentStr << "  Body: " << std::endl;
+    std::cout << std::string(indent, ' ') << "  Body: " << std::endl;
     body->print(indent + 4);
 }
 
@@ -344,18 +330,16 @@ ReturnStmt::ReturnStmt(std::shared_ptr<Expr> expr, int line, int column)
     : Stmt(line, column), expr(expr) {}
 
 void ReturnStmt::print(int indent) const {
-    std::string indentStr(indent, ' ');
-    std::cout << indentStr << "ReturnStmt: " << std::endl;
+    std::cout << std::string(indent, ' ') << "ReturnStmt: " << std::endl;
     if (expr) {
-        expr->print(indent +3);
+        expr->print(indent + 3);
     }
 }
 
 BreakStmt::BreakStmt(int line, int column) : Stmt(line, column) {}
 
 void BreakStmt::print(int indent) const {
-    std::string indentStr(indent, ' ');
-    std::cout << indentStr << "BreakStmt" << std::endl;
+    std::cout << std::string(indent, ' ') << "BreakStmt" << std::endl;
 }
 
 PrintStmt::PrintStmt(int line, int column) : Stmt(line, column) {}
@@ -365,11 +349,10 @@ void PrintStmt::addArg(std::shared_ptr<Expr> arg) {
 }
 
 void PrintStmt::print(int indent) const {
-    std::string indentStr(indent, ' ');
-    std::cout << indentStr << "PrintStmt: " << std::endl;
+    std::cout << std::string(indent, ' ') << "PrintStmt: " << std::endl;
     for (const auto& arg : args) {
-        std::cout << indentStr << "  (args) ";
-        arg->print(indent + 4); // Adjust indentation as needed
+        std::cout << std::string(indent, ' ') << "  (args) " << std::endl;
+        arg->print(indent + 4);
     }
 }
 
@@ -380,34 +363,28 @@ ASTNodeType* ReadIntegerExpr::getType() const {
 }
 
 void ReadIntegerExpr::print(int indent) const {
-    std::string indentStr(indent, ' ');
-    std::cout << indentStr << "ReadIntegerExpr: " << std::endl;
+    std::cout << std::string(indent, ' ') << "ReadIntegerExpr: " << std::endl;
 }
 
-// Declaration implementations
 VarDecl::VarDecl(ASTNodeType* type, std::shared_ptr<Identifier> id,
                  std::shared_ptr<Expr> init, int line, int column)
     : Decl(line, column), type(type), id(id), init(init) {}
 
 void VarDecl::print(int indent) const {
-    std::string indentStr(indent, ' ');
-    std::cout << indentStr << "VarDecl: " << std::endl;
-    type->print(indent +3);
-    id->print(indent +3);
+    std::cout << std::string(indent-3, ' ') << line << "   VarDecl: " << std::endl;
+    type->print(indent + 3);
+    id->print(indent + 3);
     if (init) {
-        std::cout << indentStr << "  Init: " << std::endl;
+        std::cout << std::string(indent-3, ' ') << line << "   Init: " << std::endl;
         init->print(indent + 4);
     }
 }
 
-// Implement VarDeclStmt
 VarDeclStmt::VarDeclStmt(std::shared_ptr<VarDecl> varDecl, int line, int column)
     : Stmt(line, column), varDecl(varDecl) {}
 
 void VarDeclStmt::print(int indent) const {
-    std::string indentStr(indent, ' ');
-    std::cout << indentStr << "VarDeclStmt:" << std::endl;
-    varDecl->print(indent + 3);
+    varDecl->print(indent);
 }
 
 FunctionDecl::FunctionDecl(ASTNodeType* returnType, 
@@ -423,28 +400,23 @@ void FunctionDecl::setBody(std::shared_ptr<BlockStmt> functionBody) {
 }
 
 void FunctionDecl::print(int indent) const {
-    std::string indentStr(indent-3, ' ');
-    std::cout << "  " << this->line << indentStr << "FnDecl: " << std::endl;
+    std::cout << std::string(indent-3, ' ') << line << "   FnDecl: " << std::endl;
+    std::cout << std::string(indent, ' ') << "(return type) Type: " 
+              << returnType->typeName() << std::endl;
+    id->print(indent);
     
-    std::cout << std::string(indent +3, ' ') 
-              << "(return type) Type: " << returnType->typeName() 
-              << std::endl;
-    
-    id->print(indent +3);
-    
-    if (formals.size() > 0) {
-        for (const auto& formal : formals) {
-            std::cout << "  " << line << indentStr << "(formals) VarDecl:" << std::endl ;
-            formal->type->print(indent + 2);
-            formal->id->print(indent + 2);
-        }
+    for (const auto& formal : formals) {
+        std::cout << std::string(indent-3, ' ') << formal->line 
+                  << "   (formals) VarDecl: " << std::endl;
+        formal->type->print(indent + 3);
+        formal->id->print(indent + 3);
     }
 
     if (body) {
         body->print(indent);
     }
 }
-// Root AST node
+
 ASTRootNode::ASTRootNode(int line, int column) : Node(line, column) {}
 
 void ASTRootNode::addDecl(std::shared_ptr<Decl> decl) {
@@ -452,10 +424,8 @@ void ASTRootNode::addDecl(std::shared_ptr<Decl> decl) {
 }
 
 void ASTRootNode::print(int indent) const {
-    std::string indentStr(indent, ' ');
-    std::cout << std::endl;
-    std::cout << indentStr << "Program: " << std::endl;
+    std::cout << std::endl << std::string(indent, ' ') << "Program: " << std::endl;
     for (const auto& decl : decls) {
-        decl->print(indent +3);
+        decl->print(indent + 3);
     }
 }
