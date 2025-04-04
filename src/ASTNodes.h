@@ -260,6 +260,13 @@ public:
     void print(int indent = 0) const override;
 };
 
+class VarDeclStmt : public Stmt {
+public:
+    std::shared_ptr<VarDecl> varDecl;
+    VarDeclStmt(std::shared_ptr<VarDecl> varDecl, int line = 0, int column = 0);
+    void print(int indent = 0) const override;
+};
+
 class FunctionDecl : public Decl {
 public:
     ASTNodeType* returnType;

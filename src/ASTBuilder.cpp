@@ -328,17 +328,13 @@ std::shared_ptr<Stmt> ASTBuilder::parseStmt() {
     TokenType type = currentToken().type;
     if (type == TokenType::T_Int || type == TokenType::T_Double || 
         type == TokenType::T_String || type == TokenType::T_Void || 
-        type == TokenType::T_BoolConstant) {
+        type == TokenType::T_Bool) {  // Corrected to T_Bool
         
         auto varDecl = parseVarDecl();
         if (!varDecl) return nullptr;
         
-        // Wrap VarDecl in a statement to return it from parseStmt
-        int line = varDecl->line;
-        int column = varDecl->column;
-        auto block = std::make_shared<BlockStmt>(line, column);
-        block->addStmt(std::make_shared<ExprStmt>(nullptr, line, column)); // Placeholder
-        return block;
+        // Wrap VarDecl in a VarDeclStmt (which is a Stmt)
+        return std::make_shared<VarDeclStmt>(varDecl, varDecl->line, varDecl->column);
     }
     
     // Otherwise, it's an expression statement

@@ -387,6 +387,16 @@ void VarDecl::print(int indent) const {
     }
 }
 
+// Implement VarDeclStmt
+VarDeclStmt::VarDeclStmt(std::shared_ptr<VarDecl> varDecl, int line, int column)
+    : Stmt(line, column), varDecl(varDecl) {}
+
+void VarDeclStmt::print(int indent) const {
+    std::string indentStr(indent, ' ');
+    std::cout << indentStr << "VarDeclStmt:" << std::endl;
+    varDecl->print(indent + 3);
+}
+
 FunctionDecl::FunctionDecl(ASTNodeType* returnType, 
                           std::shared_ptr<Identifier> id, int line, int column)
     : Decl(line, column), returnType(returnType), id(id) {}
