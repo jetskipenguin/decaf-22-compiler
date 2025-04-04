@@ -29,19 +29,23 @@ bool ASTNodeType::isAssignableTo(const ASTNodeType* other) const {
     return isEquivalentTo(other);
 }
 
+const char* ASTNodeType::typeName() const {
+    switch (kind) {
+        case Void: return "void";
+        case Int: return "int";
+        case Double: return "double";
+        case Bool: return "bool";
+        case String: return "string";
+        case Null: return "null";
+        case Error: return "error";
+        default: return "unknown";
+    }
+}
+
+
 void ASTNodeType::print(int indent) const {
     std::string indentStr(indent, ' ');
-    const char* typeName = "";
-    switch (kind) {
-        case Void: typeName = "void"; break;
-        case Int: typeName = "int"; break;
-        case Double: typeName = "double"; break;
-        case Bool: typeName = "bool"; break;
-        case String: typeName = "string"; break;
-        case Null: typeName = "null"; break;
-        case Error: typeName = "error"; break;
-    }
-    std::cout << indentStr << "(return type) Type: " << typeName << std::endl;
+    std::cout << indentStr << "Type: " << typeName() << std::endl;
 }
 
 // Identifier implementation
@@ -185,7 +189,7 @@ void BinaryExpr::print(int indent) const {
         case Or: opStr = "||"; break;
     }
     
-    std::cout << indentStr << "BinaryExpr: " << opStr << std::endl;
+    std::cout << indentStr << "ArithmeticExpr: " << opStr << std::endl;
     left->print(indent +3);
     right->print(indent +3);
 }
@@ -412,21 +416,24 @@ void FunctionDecl::setBody(std::shared_ptr<BlockStmt> functionBody) {
 void FunctionDecl::print(int indent) const {
     std::string indentStr(indent-3, ' ');
     std::cout << "  " << this->line << indentStr << "FnDecl: " << std::endl;
-    returnType->print(indent +3);
+    
+    std::cout << std::string(indent +3, ' ') 
+              << "(return type) Type: " << returnType->typeName() 
+              << std::endl;
+    
     id->print(indent +3);
-
-    if(formals.size() > 0) {
-        std::cout << indentStr << "  Formals: " << std::endl;
+    
+    if (formals.size() > 0) {
+        std::cout << std::string(indent +3, ' ') << "Formals:" << std::endl;
         for (const auto& formal : formals) {
-            formal->print(indent + 3);
+            formal->print(indent + 6);  // Adjust indentation as needed
         }
     }
 
     if (body) {
-        body->print(indent + 3);
+        body->print(indent +3);
     }
 }
-
 // Root AST node
 ASTRootNode::ASTRootNode(int line, int column) : Node(line, column) {}
 
