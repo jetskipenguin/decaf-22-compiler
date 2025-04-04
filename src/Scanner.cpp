@@ -51,7 +51,8 @@ bool Scanner::tokenize_reserve_ops(const std::string& content) {
     if (content[i] == '+' || content[i] == '-' || content[i] == '*' || content[i] == '/' ||
         content[i] == '=' || content[i] == '<' || content[i] == '>' || content[i] == '!' ||
         content[i] == '|' || content[i] == '.' || content[i] == ';' || content[i] == ',' ||
-        content[i] == '{' || content[i] == '}' || content[i] == '(' || content[i] == ')') {
+        content[i] == '{' || content[i] == '}' || content[i] == '(' || content[i] == ')' ||
+        content[i] == '%') {
         int start = i;
         i++;
         column++;

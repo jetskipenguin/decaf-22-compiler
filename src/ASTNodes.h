@@ -245,6 +245,13 @@ public:
     void print(int indent = 0) const override;
 };
 
+class ReadIntegerExpr : public Expr {
+public:
+    ReadIntegerExpr(int line = 0, int column = 0);
+    ASTNodeType* getType() const override;
+    void print(int indent) const override;
+};
+
 class Decl : public Node {
 public:
     using Node::Node;

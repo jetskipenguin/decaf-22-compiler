@@ -128,8 +128,8 @@ ASTNodeType* VarExpr::getType() const {
 
 void VarExpr::print(int indent) const {
     std::string indentStr(indent, ' ');
-    std::cout << indentStr << "VarExpr: " << std::endl;
-    id->print(indent +3);
+    std::cout << indentStr << "FieldAccess: " << std::endl;
+    id->print(indent + 3);
 }
 
 // Binary operation expression
@@ -171,26 +171,27 @@ ASTNodeType* BinaryExpr::getType() const {
 
 void BinaryExpr::print(int indent) const {
     std::string indentStr(indent, ' ');
-    std::string opStr;
-    
+    std::string exprType;
     switch (op) {
-        case Plus: opStr = "+"; break;
-        case Minus: opStr = "-"; break;
-        case Multiply: opStr = "*"; break;
-        case Divide: opStr = "/"; break;
-        case Modulo: opStr = "%"; break;
-        case Less: opStr = "<"; break;
-        case LessEqual: opStr = "<="; break;
-        case Greater: opStr = ">"; break;
-        case GreaterEqual: opStr = ">="; break;
-        case Equal: opStr = "=="; break;
-        case NotEqual: opStr = "!="; break;
-        case And: opStr = "&&"; break;
-        case Or: opStr = "||"; break;
+        case Plus: case Minus: case Multiply: case Divide: case Modulo:
+            exprType = "ArithmeticExpr"; break;
+        case Less: case LessEqual: case Greater: case GreaterEqual:
+            exprType = "RelationalExpr"; break;
+        case Equal: case NotEqual:
+            exprType = "EqualityExpr"; break;
+        case And: case Or:
+            exprType = "LogicalExpr"; break;
+        default: exprType = "BinaryExpr";
     }
     
-    std::cout << indentStr << "ArithmeticExpr: " << opStr << std::endl;
+    std::cout << indentStr << exprType << ": " << std::endl;
     left->print(indent +3);
+    
+    // Print operator
+    std::cout << indentStr << "  Operator: ";
+    switch(op) { /* Add cases for each operator symbol */ }
+    std::cout << std::endl;
+    
     right->print(indent +3);
 }
 
@@ -236,14 +237,13 @@ ASTNodeType* CallExpr::getType() const {
 
 void CallExpr::print(int indent) const {
     std::string indentStr(indent, ' ');
-    std::cout << indentStr << "CallExpr: " << std::endl;
+    std::cout << indentStr << "Call: " << std::endl;
     id->print(indent +3);
-    std::cout << indentStr << "  Args: " << std::endl;
     for (const auto& arg : args) {
+        std::cout << indentStr << "  (actuals) ";
         arg->print(indent + 4);
     }
 }
-
 // Assignment expression
 AssignExpr::AssignExpr(std::shared_ptr<Expr> left, 
                       std::shared_ptr<Expr> right, int line, int column)
@@ -256,10 +256,9 @@ ASTNodeType* AssignExpr::getType() const {
 void AssignExpr::print(int indent) const {
     std::string indentStr(indent, ' ');
     std::cout << indentStr << "AssignExpr: " << std::endl;
-    std::cout << indentStr << "  Left: " << std::endl;
-    left->print(indent + 4);
-    std::cout << indentStr << "  Right: " << std::endl;
-    right->print(indent + 4);
+    left->print(indent + 3);
+    std::cout << indentStr << "  Operator: =" << std::endl;
+    right->print(indent + 3);
 }
 
 // Statement implementations
@@ -368,11 +367,21 @@ void PrintStmt::addArg(std::shared_ptr<Expr> arg) {
 void PrintStmt::print(int indent) const {
     std::string indentStr(indent, ' ');
     std::cout << indentStr << "PrintStmt: " << std::endl;
-
-    std::cout << "  " << this->line << indentStr << "(args) ";
     for (const auto& arg : args) {
-        arg->print(0);
+        std::cout << indentStr << "  (args) ";
+        arg->print(indent + 4); // Adjust indentation as needed
     }
+}
+
+ReadIntegerExpr::ReadIntegerExpr(int line, int column) : Expr(line, column) {}
+
+ASTNodeType* ReadIntegerExpr::getType() const { 
+    return ASTNodeType::intType; 
+}
+
+void ReadIntegerExpr::print(int indent) const {
+    std::string indentStr(indent, ' ');
+    std::cout << indentStr << "ReadIntegerExpr: " << std::endl;
 }
 
 // Declaration implementations
@@ -432,7 +441,7 @@ void FunctionDecl::print(int indent) const {
     }
 
     if (body) {
-        body->print(indent +3);
+        body->print(indent);
     }
 }
 // Root AST node

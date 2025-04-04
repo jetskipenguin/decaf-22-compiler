@@ -795,19 +795,12 @@ std::shared_ptr<Expr> ASTBuilder::parsePrimary() {
     }
 
     if (check(TokenType::T_ReadInteger)) {
-        int line = currentToken().line;  // Get position before consuming
+        int line = currentToken().line;
         int column = currentToken().column;
-        
-        // Create synthetic identifier for the built-in function
-        auto id = std::make_shared<Identifier>("ReadInteger", line, column);
-
         consume(TokenType::T_ReadInteger);
-        
-        // Parse argument list (should be empty)
         consume(TokenType::T_Operator, "(");
         consume(TokenType::T_Operator, ")");
-        
-        return std::make_shared<CallExpr>(id, line, column);
+        return std::make_shared<ReadIntegerExpr>(line, column);
     }
     
     // Remove white space
