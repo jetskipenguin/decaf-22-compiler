@@ -4,6 +4,7 @@
 #include <memory>
 #include <string>
 #include <iostream>
+#include <unordered_map>
 
 #include "ASTNodes.h"
 #include "Scanner.h"
@@ -25,6 +26,14 @@ private:
     std::vector<std::string> sourceCode; // For logging purposes only
     size_t currentTokenIndex;
     bool verbose;
+
+    // Tracking variables, their type, and their scope
+    std::vector<std::unordered_map<std::string, ASTNodeType*>> symbolTable;
+
+    void pushScope();
+    void popScope();
+    void addToCurrentScope(const std::string& name, ASTNodeType* type);
+    ASTNodeType* lookupVariable(const std::string& name);
 
     // Token handling helpers
     Token currentToken() const;

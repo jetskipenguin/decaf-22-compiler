@@ -119,11 +119,11 @@ void NullLiteral::print(int indent) const {
 }
 
 // Variable reference
-VarExpr::VarExpr(std::shared_ptr<Identifier> id, int line, int column)
-    : Expr(line, column), id(id), varType(nullptr) {}
+VarExpr::VarExpr(std::shared_ptr<Identifier> id, int line, int column, ASTNodeType* type)
+    : Expr(line, column), id(id), varType(type) {}
 
 ASTNodeType* VarExpr::getType() const { 
-    return varType ? varType : ASTNodeType::errorType; 
+    return varType; 
 }
 
 void VarExpr::print(int indent) const {

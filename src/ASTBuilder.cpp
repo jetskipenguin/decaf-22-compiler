@@ -59,13 +59,40 @@ void ASTBuilder::consume(TokenType type, std::string character) {
         }
         nextToken();
     } else {
-        if(verbose) {
-            std::cerr << "Error: Expected " <<  token_type_to_string(type) << " with character:  " << character
-                 << " but got " << token_type_to_string(currentToken().type) << " " << currentToken().text
-                 << " at line " << currentToken().line 
-                 << ", column " << currentToken().column << std::endl;
+        std::cout << std::endl << "*** Error line " << currentToken().line << "." << std::endl
+            << sourceCode.at(currentToken().line-1) << std::endl
+            << "  ^" << std::endl
+            << "*** syntax error" << std::endl << std::endl;
+        throw std::runtime_error("Syntax error");
+    }
+}
+
+void ASTBuilder::pushScope() {
+    symbolTable.push_back({});
+}
+
+void ASTBuilder::popScope() {
+    if (!symbolTable.empty()) {
+        symbolTable.pop_back();
+    }
+}
+
+void ASTBuilder::addToCurrentScope(const std::string& name, ASTNodeType* type) {
+    if (symbolTable.empty()) {
+        pushScope(); // Ensure there's at least one scope
+    }
+    symbolTable.back()[name] = type;
+}
+
+ASTNodeType* ASTBuilder::lookupVariable(const std::string& name) {
+    for (auto it = symbolTable.rbegin(); it != symbolTable.rend(); ++it) {
+        auto& scope = *it;
+        auto found = scope.find(name);
+        if (found != scope.end()) {
+            return found->second;
         }
     }
+    return ASTNodeType::errorType; // Not found
 }
 
 // Main entry point for building the AST
@@ -126,7 +153,8 @@ std::shared_ptr<FunctionDecl> ASTBuilder::parseFunctionDecl(
     auto funcDecl = std::make_shared<FunctionDecl>(returnType, id, line, column);
     
     consume(TokenType::T_Operator, "(");
-    
+    pushScope();
+
     // Parse parameters
     if (!check(TokenType::T_Operator) || currentToken().text != ")") {
         while(true) {
@@ -152,7 +180,7 @@ std::shared_ptr<FunctionDecl> ASTBuilder::parseFunctionDecl(
             
             auto paramId = std::make_shared<Identifier>(paramName, paramLine, paramColumn);
             auto param = std::make_shared<VarDecl>(paramType, paramId, nullptr, paramLine, paramColumn);
-            
+            addToCurrentScope(paramName, paramType);
             funcDecl->addFormal(param);
             
             if (currentToken().text != ",") {
@@ -174,6 +202,7 @@ std::shared_ptr<FunctionDecl> ASTBuilder::parseFunctionDecl(
     
     // Parse function body
     auto body = parseBlock();
+    popScope();
     funcDecl->setBody(body);
     
     return funcDecl;
@@ -192,6 +221,7 @@ std::shared_ptr<VarDecl> ASTBuilder::parseVarDeclAfterType(
     }
     
     consume(TokenType::T_Operator, ";"); // Consume ';'
+    addToCurrentScope(id->name, type);
     
     return std::make_shared<VarDecl>(type, id, init, line, column);
 }
@@ -257,6 +287,7 @@ std::shared_ptr<BlockStmt> ASTBuilder::parseBlock() {
     }
     
     consume(TokenType::T_Operator, "{"); // Consume '{'
+    pushScope();
     
     auto block = std::make_shared<BlockStmt>(line, column);
     
@@ -280,7 +311,7 @@ std::shared_ptr<BlockStmt> ASTBuilder::parseBlock() {
     }
 
     consume(TokenType::T_Operator, "}"); // Consume '}'
-
+    popScope(); // Exit scope
     return block;
 }
 
@@ -691,7 +722,6 @@ std::shared_ptr<Expr> ASTBuilder::parseCall() {
                     callExpr->addArg(arg);
                 }
             }
-            
             consume(TokenType::T_Operator, ")"); // Consume ')'
             
             return callExpr;
@@ -761,7 +791,7 @@ std::shared_ptr<Expr> ASTBuilder::parsePrimary() {
         std::string name = currentToken().text;
         consume(TokenType::T_Identifier);
         auto id = std::make_shared<Identifier>(name, line, column);
-        return std::make_shared<VarExpr>(id, line, column);
+        return std::make_shared<VarExpr>(id, line, column, lookupVariable(name));
     }
 
     if (check(TokenType::T_ReadInteger)) {

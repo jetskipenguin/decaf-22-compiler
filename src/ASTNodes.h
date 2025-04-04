@@ -108,7 +108,7 @@ public:
     std::shared_ptr<Identifier> id;
     ASTNodeType* varType;
 
-    VarExpr(std::shared_ptr<Identifier> id, int line = 0, int column = 0);
+    VarExpr(std::shared_ptr<Identifier> id, int line = 0, int column = 0, ASTNodeType* type = ASTNodeType::errorType);
     ASTNodeType* getType() const override;
     void print(int indent = 0) const override;
 };
