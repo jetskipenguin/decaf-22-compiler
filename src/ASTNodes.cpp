@@ -121,7 +121,7 @@ ASTNodeType* VarExpr::getType() const {
 
 void VarExpr::print(int indent) const {
     if (isArgument) {
-        std::cout << "  " << line << std::string(indent, ' ') << "(args) FieldAccess: " << std::endl;
+        std::cout << "  " << line << std::string(indent, ' ') << "(actuals) FieldAccess: " << std::endl;
     } else {
         std::cout << "  " << line << std::string(indent, ' ') << "FieldAccess: " << std::endl;
     }
