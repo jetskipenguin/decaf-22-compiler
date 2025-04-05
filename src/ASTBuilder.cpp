@@ -111,8 +111,8 @@ std::shared_ptr<ASTRootNode> ASTBuilder::parseProgram() {
             if (decl) {
                 program->addDecl(decl);
             } else {
-            // Skip invalid declaration and try to recover
-                    nextToken();
+                // Skip invalid declaration and try to recover
+                nextToken();
         }
     }
     
@@ -204,7 +204,8 @@ std::shared_ptr<FunctionDecl> ASTBuilder::parseFunctionDecl(
     auto body = parseBlock();
     popScope();
     funcDecl->setBody(body);
-    
+    funcDecls.push_back(funcDecl);
+    currFuncIdentifier=funcDecl->id->name;
     return funcDecl;
 }
 

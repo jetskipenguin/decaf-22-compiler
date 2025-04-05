@@ -1,6 +1,8 @@
 #include "ASTNodes.h"
 #include <iostream>
 #include <string>
+#include <unordered_map>
+#include <vector>
 
 Node::Node(int line, int column) : line(line), column(column) {}
 
@@ -94,10 +96,14 @@ ASTNodeType* StringLiteral::getType() const {
 }
 
 void StringLiteral::print(int indent) const {
-    if (isArgument) {
-        std::cout << "  " << line << "         (args) StringConstant: " << value << std::endl;
-    } else {
-        std::cout << std::string(indent, ' ') << "StringConstant: " << value << std::endl;
+    switch(paramType) {
+        case ParameterType::Formal:
+            std::cout << "  " << line << std::string(indent, ' ') << "(args) StringConstant: " << std::endl;
+            break;
+        case ParameterType::Actual:
+            std::cout << "  " << line << std::string(indent, ' ') << "(actuals) StringConstant: " << std::endl;
+        case ParameterType::Not_A_Parameter:
+            std::cout <<  "  " << line << std::string(indent, ' ') << "StringConstant:" << std::endl;
     }
 }
 
@@ -120,10 +126,15 @@ ASTNodeType* VarExpr::getType() const {
 }
 
 void VarExpr::print(int indent) const {
-    if (isArgument) {
-        std::cout << "  " << line << std::string(indent, ' ') << "(actuals) FieldAccess: " << std::endl;
-    } else {
-        std::cout << "  " << line << std::string(indent, ' ') << "FieldAccess: " << std::endl;
+
+    switch(paramType) {
+        case ParameterType::Formal:
+            std::cout << "  " << line << std::string(indent, ' ') << "(formals) FieldAccess: " << std::endl;
+            break;
+        case ParameterType::Actual:
+            std::cout << "  " << line << std::string(indent, ' ') << "(actuals) FieldAccess: " << std::endl;
+        case ParameterType::Not_A_Parameter:
+            std::cout <<  "  " << line << std::string(indent, ' ') << "FieldAccess" << std::endl;
     }
     id->print(indent + 3);
 }
@@ -230,8 +241,8 @@ void UnaryExpr::print(int indent) const {
 CallExpr::CallExpr(std::shared_ptr<Identifier> id, int line, int column)
     : Expr(line, column), id(id), returnType(nullptr) {}
 
-void CallExpr::addArg(std::shared_ptr<Expr> arg) {
-    arg->setIsArgument(true);
+void CallExpr::addArg(std::shared_ptr<Expr> arg, std::string funcIdentifier) {
+    arg->setParamType(getParamType(arg, funcIdentifier));
     args.push_back(arg);
 }
 
@@ -240,10 +251,16 @@ ASTNodeType* CallExpr::getType() const {
 }
 
 void CallExpr::print(int indent) const {
-    if (isArgument) {
-        std::cout <<  "  " << line << std::string(indent, ' ') << "(args) Call:" << std::endl;
-    } else {
-        std::cout <<  "  " << line << std::string(indent, ' ') << "Call:" << std::endl;
+    std::string outputStr;
+
+    switch(paramType) {
+        case ParameterType::Formal:
+            std::cout <<  "  " << line << std::string(indent, ' ') << "(args) Call:" << std::endl;
+            break;
+        case ParameterType::Actual:
+            std::cout <<  "  " << line << std::string(indent, ' ') << "(actuals) Call:" << std::endl;
+        case ParameterType::Not_A_Parameter:
+            std::cout <<  "  " << line << std::string(indent, ' ') << "Call:" << std::endl;
     }
     id->print(indent+3);
     for (const auto& arg : args) {
@@ -356,9 +373,26 @@ void BreakStmt::print(int indent) const {
 
 PrintStmt::PrintStmt(int line, int column) : Stmt(line, column) {}
 
-void PrintStmt::addArg(std::shared_ptr<Expr> arg) {
-    arg->setIsArgument(true);
+void PrintStmt::addArg(std::shared_ptr<Expr> arg, std::string funcIdentifier) {
+    arg->setParamType(getParamType(arg, funcIdentifier));
     args.push_back(arg);
+}
+
+
+ParameterType getParamType(std::shared_ptr<Expr> expr, std::string funcIdentifier) {
+    if(!expr) return ParameterType::Not_A_Parameter;
+
+    for(auto funcDecl : funcDecls) {
+        if(funcIdentifier == funcDecl->id->name) {
+            for(auto formal : funcDecl->formals) {
+                if(formal == expr->id->name) {
+                    return ParameterType::Formal;
+                }
+            }
+        }
+    }
+
+    return ParameterType::Actual;
 }
 
 void PrintStmt::print(int indent) const {

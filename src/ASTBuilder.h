@@ -24,6 +24,7 @@ class ASTBuilder {
 private:
     std::vector<Token> tokens;
     std::vector<std::string> sourceCode; // For logging purposes only
+    std::string currFuncIdentifier;
     size_t currentTokenIndex;
     bool verbose;
 

@@ -6,9 +6,17 @@
 #include <iostream>
 #include "Token.h"
 
+std::vector<std::shared_ptr<FunctionDecl>> funcDecls;
+
 // Forward declarations
 class ASTNodeType;
 class Identifier;
+
+enum ParameterType {
+    Actual,
+    Formal,
+    Not_A_Parameter
+};
 
 class Node {
 public:
@@ -22,12 +30,14 @@ public:
 
 class Expr : public Node {
 protected:
-    bool isArgument = false;
+    // Denotes whether or not this expression is used as a parameter and what type of param
+    ParameterType paramType = ParameterType::Not_A_Parameter;
 public:
+    std::shared_ptr<Identifier> id;
     Expr(int line, int column) : Node(line, column) {}
     virtual ASTNodeType* getType() const = 0;
-    void setIsArgument(bool isArg) { isArgument = isArg; }
-    bool getIsArgument() const { return isArgument; }
+    void setParamType(ParameterType type) { paramType = type; }
+    ParameterType getParameterType() const { return paramType; }
 };
 
 class ASTNodeType : public Node {
@@ -109,9 +119,7 @@ public:
 
 class VarExpr : public Expr {
 public:
-    std::shared_ptr<Identifier> id;
     ASTNodeType* varType;
-
     VarExpr(std::shared_ptr<Identifier> id, int line = 0, int column = 0, ASTNodeType* type = ASTNodeType::errorType);
     ASTNodeType* getType() const override;
     void print(int indent = 0) const override;
@@ -149,12 +157,11 @@ public:
 
 class CallExpr : public Expr {
 public:
-    std::shared_ptr<Identifier> id;
     std::vector<std::shared_ptr<Expr>> args;
     ASTNodeType* returnType;
 
     CallExpr(std::shared_ptr<Identifier> id, int line = 0, int column = 0);
-    void addArg(std::shared_ptr<Expr> arg);
+    void addArg(std::shared_ptr<Expr> arg, std::string funcIdentifier);
     ASTNodeType* getType() const override;
     void print(int indent = 0) const override;
 };
@@ -245,7 +252,7 @@ public:
     std::vector<std::shared_ptr<Expr>> args;
 
     PrintStmt(int line = 0, int column = 0);
-    void addArg(std::shared_ptr<Expr> arg);
+    void addArg(std::shared_ptr<Expr> arg, std::string funcIdentifier);
     void print(int indent = 0) const override;
 };
 
