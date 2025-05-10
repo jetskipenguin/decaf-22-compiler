@@ -380,12 +380,14 @@ void ReadIntegerExpr::print(int indent) const {
 
 VarDecl::VarDecl(ASTNodeType* type, std::shared_ptr<Identifier> id,
                  std::shared_ptr<Expr> init, int line, int column)
-    : Decl(line, column), type(type), id(id), init(init) {}
+    : Decl(line, column), type(type), init(init) {
+        identifier = id;
+    }
 
 void VarDecl::print(int indent) const {
     std::cout << "  " << line << std::string(indent, ' ') << "VarDecl: " << std::endl;
     type->print(indent + 6);
-    id->print(indent + 3);
+    identifier->print(indent + 3);
     if (init) {
         std::cout << "  " << line << std::string(indent-3, ' ') << "   Init: " << std::endl;
         init->print(indent + 4);
@@ -401,7 +403,9 @@ void VarDeclStmt::print(int indent) const {
 
 FunctionDecl::FunctionDecl(ASTNodeType* returnType, 
                           std::shared_ptr<Identifier> id, int line, int column)
-    : Decl(line, column), returnType(returnType), id(id) {}
+    : Decl(line, column), returnType(returnType) {
+        identifier = id;
+    }
 
 void FunctionDecl::addFormal(std::shared_ptr<VarDecl> formal) {
     formals.push_back(formal);
@@ -415,13 +419,13 @@ void FunctionDecl::print(int indent) const {
     std::cout << "  " << line << std::string(indent, ' ') <<  "FnDecl: " << std::endl;
     std::cout << std::string(indent+6, ' ') << "(return type) Type: " 
               << returnType->typeName() << std::endl;
-    id->print(indent+3);
+    identifier->print(indent+3);
     
     for (const auto& formal : formals) {
         std::cout << "  " << formal->line  << std::string(indent+3, ' ')
                   << "(formals) VarDecl: " << std::endl;
         formal->type->print(indent + 9);
-        formal->id->print(indent + 6);
+        formal->identifier->print(indent + 6);
     }
 
     if (body) {

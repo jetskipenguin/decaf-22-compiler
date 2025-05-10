@@ -259,13 +259,13 @@ public:
 class Decl : public Node {
 public:
     using Node::Node;
+    std::shared_ptr<Identifier> identifier;
 };
 
 // Var declaration that includes assignment
 class VarDecl : public Decl {
 public:
     ASTNodeType* type;
-    std::shared_ptr<Identifier> id;
     std::shared_ptr<Expr> init;
 
     VarDecl(ASTNodeType* type, std::shared_ptr<Identifier> id,
@@ -284,7 +284,6 @@ public:
 class FunctionDecl : public Decl {
 public:
     ASTNodeType* returnType;
-    std::shared_ptr<Identifier> id;
     std::vector<std::shared_ptr<VarDecl>> formals;
     std::shared_ptr<BlockStmt> body;
 
