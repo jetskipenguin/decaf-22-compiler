@@ -1,4 +1,3 @@
-#include "ASTNodes.h"
 #include "SymbolTable.h"
 #include <stdexcept>
 
@@ -16,8 +15,10 @@ void analyzeAST(std::shared_ptr<ASTRootNode> &rootNode) {
              std::cout << "Error: Identifier " << decl->identifier->name << " cannot be used more than once" << std::endl;
         }
 
-        if(decl->declType == DeclType::VAR_DECL) {
-            
+        std::shared_ptr<VarDecl> varDecl = std::dynamic_pointer_cast<VarDecl>(decl);
+        if(varDecl) {
+            IdentifierEntry entry = table.lookup(varDecl->identifier->name, 1);
+            entry.dataType = varDecl->type->kind;
         }
 
         

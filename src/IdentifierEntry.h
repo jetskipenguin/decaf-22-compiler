@@ -1,9 +1,6 @@
 #pragma once
 #include <string>
-
-enum Type {
-    Void, Int, Double, Bool, String, Null, Error
-};
+#include "ASTNodes.h"
 
 enum Scope {
     GLOBAL, LOCAL, PARAMETER
@@ -11,6 +8,6 @@ enum Scope {
 
 struct IdentifierEntry {
     std::string name;
-    Type dataType;
+    TypeKind dataType;
     int blockLevel;
 };

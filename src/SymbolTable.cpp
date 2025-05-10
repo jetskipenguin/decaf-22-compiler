@@ -1,5 +1,4 @@
 #include <stdexcept>
-
 #include "SymbolTable.h"
 
 void SymbolTable::install(std::string symbolName, int blockLevel) {
