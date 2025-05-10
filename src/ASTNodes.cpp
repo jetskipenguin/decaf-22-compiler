@@ -4,13 +4,13 @@
 
 Node::Node(int line, int column) : line(line), column(column) {}
 
-ASTNodeType* ASTNodeType::voidType = new ASTNodeType(ASTNodeType::Void);
-ASTNodeType* ASTNodeType::intType = new ASTNodeType(ASTNodeType::Int);
-ASTNodeType* ASTNodeType::doubleType = new ASTNodeType(ASTNodeType::Double);
-ASTNodeType* ASTNodeType::boolType = new ASTNodeType(ASTNodeType::Bool);
-ASTNodeType* ASTNodeType::stringType = new ASTNodeType(ASTNodeType::String);
-ASTNodeType* ASTNodeType::nullType = new ASTNodeType(ASTNodeType::Null);
-ASTNodeType* ASTNodeType::errorType = new ASTNodeType(ASTNodeType::Error);
+ASTNodeType* ASTNodeType::voidType = new ASTNodeType(TypeKind::Void);
+ASTNodeType* ASTNodeType::intType = new ASTNodeType(TypeKind::Int);
+ASTNodeType* ASTNodeType::doubleType = new ASTNodeType(TypeKind::Double);
+ASTNodeType* ASTNodeType::boolType = new ASTNodeType(TypeKind::Bool);
+ASTNodeType* ASTNodeType::stringType = new ASTNodeType(TypeKind::String);
+ASTNodeType* ASTNodeType::nullType = new ASTNodeType(TypeKind::Null);
+ASTNodeType* ASTNodeType::errorType = new ASTNodeType(TypeKind::Error);
 
 ASTNodeType::ASTNodeType(TypeKind kind, int line, int column) 
     : Node(line, column), kind(kind) {}
@@ -141,8 +141,8 @@ ASTNodeType* BinaryExpr::getType() const {
     }
 
     if (leftType->isNumeric() && rightType->isNumeric()) {
-        if (leftType->kind == ASTNodeType::Double || 
-            rightType->kind == ASTNodeType::Double) {
+        if (leftType->kind == TypeKind::Double || 
+            rightType->kind == TypeKind::Double) {
             return ASTNodeType::doubleType;
         }
         return ASTNodeType::intType;
@@ -213,7 +213,7 @@ ASTNodeType* UnaryExpr::getType() const {
         case Minus:
             return exprType->isNumeric() ? exprType : ASTNodeType::errorType;
         case Not:
-            return (exprType->kind == ASTNodeType::Bool) ? 
+            return (exprType->kind == TypeKind::Bool) ? 
                    ASTNodeType::boolType : ASTNodeType::errorType;
         default:
             return ASTNodeType::errorType;

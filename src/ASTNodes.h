@@ -35,12 +35,12 @@ public:
     bool getIsArgument() const { return isArgument; }
 };
 
-class ASTNodeType : public Node {
-public:
-    enum TypeKind {
+enum TypeKind {
         Void, Int, Double, Bool, String, Null, Error
     };
 
+class ASTNodeType : public Node {
+public:
     TypeKind kind;
 
     ASTNodeType(TypeKind kind, int line = 0, int column = 0);
