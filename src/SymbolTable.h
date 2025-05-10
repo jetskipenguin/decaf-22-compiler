@@ -12,6 +12,9 @@ class SymbolTable {
     private:
         std::vector<std::unordered_map<std::string, IdentifierEntry>> tables;
     public:
+        SymbolTable() {
+            tables.emplace_back();
+        }
         void install(std::string, int blockLevel);
         IdentifierEntry lookup(std::string, int blockLevel);
 };

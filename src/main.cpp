@@ -8,6 +8,7 @@
 #include <cstring>
 
 #include "ASTBuilder.h"
+#include "semanticAnalyzer.h"
 
 #define MAX_IDENTIFIER_LENGTH 31
 
@@ -124,7 +125,9 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
-    ast->print(0);
+    // ast->print(0);
+
+    analyzeAST(ast);
         
     return 0;
 }
