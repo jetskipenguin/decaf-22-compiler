@@ -10,6 +10,11 @@
 class ASTNodeType;
 class Identifier;
 
+enum DeclType {
+    FUNCTION_DECL,
+    VAR_DECL
+};
+
 class Node {
 public:
     int line;
@@ -260,6 +265,7 @@ class Decl : public Node {
 public:
     using Node::Node;
     std::shared_ptr<Identifier> identifier;
+    DeclType declType;
 };
 
 // Var declaration that includes assignment

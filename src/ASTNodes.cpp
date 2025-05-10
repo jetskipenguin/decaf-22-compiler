@@ -382,6 +382,7 @@ VarDecl::VarDecl(ASTNodeType* type, std::shared_ptr<Identifier> id,
                  std::shared_ptr<Expr> init, int line, int column)
     : Decl(line, column), type(type), init(init) {
         identifier = id;
+        declType = DeclType::VAR_DECL;
     }
 
 void VarDecl::print(int indent) const {
@@ -405,6 +406,7 @@ FunctionDecl::FunctionDecl(ASTNodeType* returnType,
                           std::shared_ptr<Identifier> id, int line, int column)
     : Decl(line, column), returnType(returnType) {
         identifier = id;
+        declType = DeclType::FUNCTION_DECL;
     }
 
 void FunctionDecl::addFormal(std::shared_ptr<VarDecl> formal) {
