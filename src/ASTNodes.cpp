@@ -171,6 +171,12 @@ bool BinaryExpr::isValidOperandForGivenTypes() {
         }
     }
 
+    if(this->op == BinaryOp::And) {
+        if(leftType == ASTNodeType::boolType && ASTNodeType::intType) {
+            return false;
+        }
+    }
+
     return true;
 }
 
@@ -246,7 +252,24 @@ UnaryExpr::UnaryExpr(UnaryOp op, std::shared_ptr<Expr> expr, int line, int colum
     : Expr(line, column), op(op), expr(expr) {}
 
 bool UnaryExpr::check(SymbolTable &table, int blockLevel) {
-    return this->expr->check(table, blockLevel);
+    this->expr->check(table, blockLevel);
+
+    if(this->op == UnaryOp::Not) {
+        std::shared_ptr<VarExpr> varExpr = std::dynamic_pointer_cast<VarExpr>(this->expr);
+        if(varExpr) {
+            std::shared_ptr<IdentifierEntry> varInfo = table.lookup(varExpr->id->name, 2);
+
+            if(varInfo->type == ASTNodeType::intType) {
+                std::string indentStr(this->column+1, ' ');
+                std::cout << "*** Error line " << this->line << "." << std::endl;
+                std::cout << SourceInfo::sourceCode.at(this->line-1) << std::endl;
+                std::cout << indentStr << "^" << std::endl;
+                std::cout << "*** Incompatible operand: ! int" << std::endl; 
+                std::cout << std::endl;
+                return false;
+            }
+        }
+    }
 }
 
 ASTNodeType* UnaryExpr::getType() const {
