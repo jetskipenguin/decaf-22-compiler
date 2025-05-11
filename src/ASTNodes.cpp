@@ -2,50 +2,6 @@
 #include <iostream>
 #include <string>
 
-Node::Node(int line, int column) : line(line), column(column) {}
-
-ASTNodeType* ASTNodeType::voidType = new ASTNodeType(TypeKind::Void);
-ASTNodeType* ASTNodeType::intType = new ASTNodeType(TypeKind::Int);
-ASTNodeType* ASTNodeType::doubleType = new ASTNodeType(TypeKind::Double);
-ASTNodeType* ASTNodeType::boolType = new ASTNodeType(TypeKind::Bool);
-ASTNodeType* ASTNodeType::stringType = new ASTNodeType(TypeKind::String);
-ASTNodeType* ASTNodeType::nullType = new ASTNodeType(TypeKind::Null);
-ASTNodeType* ASTNodeType::errorType = new ASTNodeType(TypeKind::Error);
-
-ASTNodeType::ASTNodeType(TypeKind kind, int line, int column) 
-    : Node(line, column), kind(kind) {}
-
-bool ASTNodeType::isError() const { return kind == Error; }
-bool ASTNodeType::isVoid() const { return kind == Void; }
-bool ASTNodeType::isNumeric() const { return kind == Int || kind == Double; }
-
-bool ASTNodeType::isEquivalentTo(const ASTNodeType* other) const {
-    return kind == other->kind;
-}
-
-bool ASTNodeType::isAssignableTo(const ASTNodeType* other) const {
-    if (kind == Null) return true;
-    if (kind == Error || other->kind == Error) return false;
-    return isEquivalentTo(other);
-}
-
-const char* ASTNodeType::typeName() const {
-    switch (kind) {
-        case Void: return "void";
-        case Int: return "int";
-        case Double: return "double";
-        case Bool: return "bool";
-        case String: return "string";
-        case Null: return "null";
-        case Error: return "error";
-        default: return "unknown";
-    }
-}
-
-void ASTNodeType::print(int indent) const {
-    std::cout << std::string(indent, ' ') << "Type: " << typeName() << std::endl;
-}
-
 Identifier::Identifier(const std::string& name, int line, int column)
     : Node(line, column), name(name) {}
 
@@ -117,6 +73,12 @@ VarExpr::VarExpr(std::shared_ptr<Identifier> id, int line, int column, ASTNodeTy
 
 ASTNodeType* VarExpr::getType() const { 
     return varType; 
+}
+
+void VarExpr::check(SymbolTable &table, int blockLevel) {
+    if(table.lookup(id->name, blockLevel) == nullptr) {
+        std::cout << "*** No declaration for variable '" << id->name << "' found" << std::endl;
+    }
 }
 
 void VarExpr::print(int indent) const {
@@ -229,6 +191,12 @@ void UnaryExpr::print(int indent) const {
 
 CallExpr::CallExpr(std::shared_ptr<Identifier> id, int line, int column)
     : Expr(line, column), id(id), returnType(nullptr) {}
+
+void CallExpr::check(SymbolTable &table, int blockLevel) {
+    if(table.lookup(id->name, blockLevel) == nullptr) {
+        std::cout << "*** No declaration for Function '" << id->name << "' found" << std::endl;
+    }
+}
 
 void CallExpr::addArg(std::shared_ptr<Expr> arg) {
     arg->setIsArgument(true);
@@ -382,7 +350,6 @@ VarDecl::VarDecl(ASTNodeType* type, std::shared_ptr<Identifier> id,
                  std::shared_ptr<Expr> init, int line, int column)
     : Decl(line, column), type(type), init(init) {
         identifier = id;
-        declType = DeclType::VAR_DECL;
     }
 
 void VarDecl::print(int indent) const {
@@ -406,7 +373,6 @@ FunctionDecl::FunctionDecl(ASTNodeType* returnType,
                           std::shared_ptr<Identifier> id, int line, int column)
     : Decl(line, column), returnType(returnType) {
         identifier = id;
-        declType = DeclType::FUNCTION_DECL;
     }
 
 void FunctionDecl::addFormal(std::shared_ptr<VarDecl> formal) {

@@ -1,6 +1,6 @@
 #pragma once
 #include <string>
-#include "ASTNodes.h"
+#include "ASTNodeType.h"
 
 enum Scope {
     GLOBAL, LOCAL, PARAMETER

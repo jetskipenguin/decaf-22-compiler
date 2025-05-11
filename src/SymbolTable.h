@@ -4,6 +4,7 @@
 #include <vector>
 #include <unordered_map>
 #include <vector>
+#include <memory>
 #include "IdentifierEntry.h"
 
 // Block level 1 = global vars

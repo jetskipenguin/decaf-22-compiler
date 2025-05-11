@@ -5,25 +5,11 @@
 #include <memory>
 #include <iostream>
 #include "Token.h"
+#include "SymbolTable.h"
 
 // Forward declarations
 class ASTNodeType;
 class Identifier;
-
-enum DeclType {
-    FUNCTION_DECL,
-    VAR_DECL
-};
-
-class Node {
-public:
-    int line;
-    int column;
-
-    Node(int line = 0, int column = 0);
-    virtual ~Node() = default;
-    virtual void print(int indent = 0) const = 0;
-};
 
 class Expr : public Node {
 protected:
@@ -33,32 +19,6 @@ public:
     virtual ASTNodeType* getType() const = 0;
     void setIsArgument(bool isArg) { isArgument = isArg; }
     bool getIsArgument() const { return isArgument; }
-};
-
-enum TypeKind {
-        Void, Int, Double, Bool, String, Null, Error
-    };
-
-class ASTNodeType : public Node {
-public:
-    TypeKind kind;
-
-    ASTNodeType(TypeKind kind, int line = 0, int column = 0);
-    bool isError() const;
-    bool isVoid() const;
-    bool isNumeric() const;
-    bool isEquivalentTo(const ASTNodeType* other) const;
-    bool isAssignableTo(const ASTNodeType* other) const;
-    const char* typeName() const;  // Add this line
-    void print(int indent = 0) const override;
-
-    static ASTNodeType* voidType;
-    static ASTNodeType* intType;
-    static ASTNodeType* doubleType;
-    static ASTNodeType* boolType;
-    static ASTNodeType* stringType;
-    static ASTNodeType* nullType;
-    static ASTNodeType* errorType;
 };
 
 class Identifier : public Node {
@@ -119,6 +79,7 @@ public:
 
     VarExpr(std::shared_ptr<Identifier> id, int line = 0, int column = 0, ASTNodeType* type = ASTNodeType::errorType);
     ASTNodeType* getType() const override;
+    void check(SymbolTable &table, int blockLevel);
     void print(int indent = 0) const override;
 };
 
@@ -162,6 +123,7 @@ public:
     void addArg(std::shared_ptr<Expr> arg);
     ASTNodeType* getType() const override;
     void print(int indent = 0) const override;
+    void check(SymbolTable &table, int blockLevel);
 };
 
 class AssignExpr : public Expr {
@@ -265,7 +227,6 @@ class Decl : public Node {
 public:
     using Node::Node;
     std::shared_ptr<Identifier> identifier;
-    DeclType declType;
 };
 
 // Var declaration that includes assignment
