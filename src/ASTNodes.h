@@ -99,6 +99,8 @@ public:
               int line = 0, int column = 0);
     ASTNodeType* getType() const override;
     void print(int indent = 0) const override;
+    std::string getOpAsString();
+    void check(SymbolTable &table, int blockLevel);
 };
 
 class UnaryExpr : public Expr {

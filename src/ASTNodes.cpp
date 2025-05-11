@@ -94,6 +94,46 @@ BinaryExpr::BinaryExpr(BinaryOp op, std::shared_ptr<Expr> left,
                       std::shared_ptr<Expr> right, int line, int column)
     : Expr(line, column), op(op), left(left), right(right) {}
 
+std::string BinaryExpr::getOpAsString() {
+    switch(this->op) {
+    case BinaryOp::And:
+        return "&&";
+    case BinaryOp::Or:
+        return "||";
+    case BinaryOp::NotEqual:
+        return "!=";
+    case BinaryOp::Equal:
+        return "==";
+    case BinaryOp::GreaterEqual:
+        return ">=";
+    case BinaryOp::Greater:
+        return ">";
+    case BinaryOp::LessEqual:
+        return "<=";
+    case BinaryOp::Less:
+        return "<";
+    case BinaryOp::Modulo:
+        return "%";
+    case BinaryOp::Divide:
+        return "/";
+    case BinaryOp::Multiply:
+        return "*";
+    case BinaryOp::Minus:
+        return "-";
+    case BinaryOp::Plus:
+        return "+";
+    }
+    return "";
+}
+
+void BinaryExpr::check(SymbolTable &table, int blockLevel) {
+    ASTNodeType* leftType = this->left->getType();
+    ASTNodeType* rightType = this->right->getType();
+    if(!rightType->isAssignableTo(leftType)) {
+        std::cout << "*** Incompatible operands: " << leftType->typeName() << " " << this->getOpAsString() << " " << rightType->typeName() << std::endl;
+    }
+}
+
 ASTNodeType* BinaryExpr::getType() const {
     ASTNodeType* leftType = left->getType();
     ASTNodeType* rightType = right->getType();
