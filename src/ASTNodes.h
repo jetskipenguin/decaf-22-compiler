@@ -111,6 +111,7 @@ public:
     void print(int indent = 0) const override;
     std::string getOpAsString();
     bool check(SymbolTable &table, int blockLevel) override;
+    bool isValidOperandForGivenTypes();
 };
 
 class UnaryExpr : public Expr {

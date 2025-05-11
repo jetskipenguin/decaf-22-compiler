@@ -136,11 +136,14 @@ std::string BinaryExpr::getOpAsString() {
 
 bool BinaryExpr::check(SymbolTable &table, int blockLevel) {
     std::cout << "In binary expr" << std::endl;
+
+    this->right->check(table, blockLevel);
+    this->left->check(table, blockLevel);
+
     ASTNodeType* leftType = this->left->getType();
     ASTNodeType* rightType = this->right->getType();
-    this->left->print();
-    // TODO: fix typename here, for some reason it returns error on sample: /samples/semantic_analyzer/bad1.decaf 
-    if(!rightType->isAssignableTo(leftType)) {
+
+    if(!isValidOperandForGivenTypes()) {
         std::string indentStr(this->column+1, ' ');
         std::cout << "*** Error line " << this->line << "." << std::endl;
         std::cout << SourceInfo::sourceCode.at(this->line-1) << std::endl;
@@ -149,6 +152,25 @@ bool BinaryExpr::check(SymbolTable &table, int blockLevel) {
         std::cout << std::endl;
         return false;
     }
+    return true;
+}
+
+bool BinaryExpr::isValidOperandForGivenTypes() {
+    ASTNodeType* leftType = this->left->getType();
+    ASTNodeType* rightType = this->right->getType();
+    
+    if(this->op == BinaryOp::Minus) {
+        if(leftType == ASTNodeType::intType && rightType == ASTNodeType::doubleType) {
+            return false;
+        }
+    }
+
+    if(this->op == BinaryOp::Divide) {
+        if(leftType == ASTNodeType::doubleType && rightType == ASTNodeType::intType) {
+            return false;
+        }
+    }
+
     return true;
 }
 
