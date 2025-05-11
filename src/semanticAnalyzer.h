@@ -19,7 +19,7 @@ void analyzeAST(std::shared_ptr<ASTRootNode> &rootNode) {
         if(varDecl) {
             std::shared_ptr<IdentifierEntry> entry = table.lookup(varDecl->identifier->name, 1);
             entry->type = varDecl->type;
-            // TODO: make sure the datatype is saved as intended
+            varDecl->check(table, 1);
             continue;
         }
 
@@ -27,7 +27,7 @@ void analyzeAST(std::shared_ptr<ASTRootNode> &rootNode) {
         if(functionDecl) {
             std::shared_ptr<IdentifierEntry> entry = table.lookup(functionDecl->identifier->name, 1);
             entry->type = functionDecl->returnType;
-            // TODO: make sure the datatype is saved as intended
+            varDecl->check(table, 2);
             continue;
         }
 

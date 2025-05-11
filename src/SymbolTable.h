@@ -13,6 +13,7 @@ class SymbolTable {
     private:
         std::vector<std::unordered_map<std::string, IdentifierEntry>> tables;
     public:
+        // TODO: update to not have maps and have the block levels already initialized
         SymbolTable() {
             tables.emplace_back();
         }
