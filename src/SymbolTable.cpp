@@ -13,6 +13,9 @@ void SymbolTable::install(std::string symbolName, int blockLevel) {
     this->tables.at(blockLevel).insert({symbolName, entryToAdd});
 }
 
+// TODO: if blockLevel == 2, try looking in blockLevel == 1 for global vars
 std::shared_ptr<IdentifierEntry> SymbolTable::lookup(std::string symbolName, int blockLevel) {
     return std::make_shared<IdentifierEntry>(this->tables.at(blockLevel).at(symbolName));
 }
+
+// TODO: implement function to clear block level 2 ( for when leaving functions)
