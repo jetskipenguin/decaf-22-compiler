@@ -392,8 +392,8 @@ std::shared_ptr<Stmt> ASTBuilder::parseIfStmt() {
     if (match(TokenType::T_Else)) {
         elseStmt = parseStmt();
     }
-    
-    return std::make_shared<IfStmt>(condition, thenStmt, elseStmt, line, column);
+    int condLength = condition->column - column - 4;
+    return std::make_shared<IfStmt>(condition, thenStmt, elseStmt, line, column, condLength);
 }
 
 // WhileStmt -> 'while' '(' Expr ')' Stmt
@@ -792,25 +792,27 @@ std::shared_ptr<Expr> ASTBuilder::parsePrimary() {
     if (check(TokenType::T_Identifier)) {
         std::string name = currentToken().text;
         consume(TokenType::T_Identifier);
+        int line = currentToken().line;
+        int column = currentToken().column;
         auto id = std::make_shared<Identifier>(name, line, column);
         return std::make_shared<VarExpr>(id, line, column, lookupVariable(name));
     }
 
     if (check(TokenType::T_ReadInteger)) {
-        int line = currentToken().line;
-        int column = currentToken().column;
         consume(TokenType::T_ReadInteger);
         consume(TokenType::T_Operator, "(");
         consume(TokenType::T_Operator, ")");
+        int line = currentToken().line;
+        int column = currentToken().column;
         return std::make_shared<ReadIntegerExpr>(line, column);
     }
 
     if (check(TokenType::T_ReadLine)) {
-        int line = currentToken().line;
-        int column = currentToken().column;
         consume(TokenType::T_ReadLine);
         consume(TokenType::T_Operator, "(");
         consume(TokenType::T_Operator, ")");
+        int line = currentToken().line;
+        int column = currentToken().column;
         return std::make_shared<ReadLineExpr>(line, column);
     }
     

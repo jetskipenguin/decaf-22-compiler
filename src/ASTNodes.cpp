@@ -406,8 +406,8 @@ void BlockStmt::print(int indent) const {
 }
 
 IfStmt::IfStmt(std::shared_ptr<Expr> cond, std::shared_ptr<Stmt> thenStmt,
-               std::shared_ptr<Stmt> elseStmt, int line, int column)
-    : Stmt(line, column), cond(cond), thenStmt(thenStmt), elseStmt(elseStmt) {}
+               std::shared_ptr<Stmt> elseStmt, int line, int column, int condLength)
+    : Stmt(line, column), cond(cond), thenStmt(thenStmt), elseStmt(elseStmt), condLength(condLength)  {}
 
 void IfStmt::check(SymbolTable &table, int blockLevel) {
     cond->check(table, blockLevel);
@@ -417,10 +417,11 @@ void IfStmt::check(SymbolTable &table, int blockLevel) {
     }
 
     if(cond->getType() != ASTNodeType::boolType) {
-        std::string indentStr(this->cond->column, ' ');
+        std::string indentStr(this->cond->column-1-condLength, ' ');
+        std::string errorHighlight(condLength, '^');
         std::cout << "*** Error line " << this->line << "." << std::endl;
         std::cout << SourceInfo::sourceCode.at(this->line-1) << std::endl;
-        std::cout << indentStr << "^^^^^^^^^^^^^" << std::endl; // TODO: make the length of the error highlight variable
+        std::cout << indentStr << errorHighlight << std::endl; // TODO: make the length of the error highlight variable
         std::cout << "*** Test expression must have boolean type" << std::endl;
         std::cout << std::endl;
     }
