@@ -8,6 +8,6 @@ enum Scope {
 
 struct IdentifierEntry {
     std::string name;
-    TypeKind dataType;
+    ASTNodeType* type;
     int blockLevel;
 };

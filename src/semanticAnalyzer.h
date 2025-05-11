@@ -18,7 +18,7 @@ void analyzeAST(std::shared_ptr<ASTRootNode> &rootNode) {
         std::shared_ptr<VarDecl> varDecl = std::dynamic_pointer_cast<VarDecl>(decl);
         if(varDecl) {
             std::shared_ptr<IdentifierEntry> entry = table.lookup(varDecl->identifier->name, 1);
-            entry->dataType = varDecl->type->kind;
+            entry->type = varDecl->type;
             // TODO: make sure the datatype is saved as intended
             continue;
         }
@@ -26,7 +26,7 @@ void analyzeAST(std::shared_ptr<ASTRootNode> &rootNode) {
         std::shared_ptr<FunctionDecl> functionDecl = std::dynamic_pointer_cast<FunctionDecl>(decl);
         if(functionDecl) {
             std::shared_ptr<IdentifierEntry> entry = table.lookup(functionDecl->identifier->name, 1);
-            entry->dataType = functionDecl->returnType->kind;
+            entry->type = functionDecl->returnType;
             // TODO: make sure the datatype is saved as intended
             continue;
         }
@@ -58,4 +58,10 @@ void verifyVarDeclExists(std::string identifierName, SymbolTable &table) {
 
     std::cout << "*** No declaration for Function '" << identifierName << "' found";
     return;
+}
+
+void verifyExprOperands(ASTNodeType* leftOperand, ASTNodeType* rightOperand) {
+    if(!leftOperand->isAssignableTo(rightOperand)) {
+        std::cout << "*** Incompatible operands: " << leftOperand->typeName() << " * " << rightOperand->typeName() << std::endl;
+    }
 }
