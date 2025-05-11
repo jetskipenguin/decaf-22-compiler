@@ -84,7 +84,7 @@ ASTNodeType* VarExpr::getType() const {
 bool VarExpr::check(SymbolTable &table, int blockLevel) {
     std::cout << "Checking VarExpr..." << std::endl;
     if(table.lookup(id->name, blockLevel) == nullptr) {
-        std::string indentStr(this->id->column-1, ' ');
+        std::string indentStr(this->id->column-1-id->name.size(), ' ');
         std::string errorHighlight(id->name.size(), '^');
         std::cout << "*** Error line " << this->line << "." << std::endl;
         std::cout << SourceInfo::sourceCode.at(this->line-1) << std::endl;
