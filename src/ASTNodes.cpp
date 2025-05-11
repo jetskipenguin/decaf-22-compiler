@@ -320,8 +320,13 @@ bool AssignExpr::check(SymbolTable &table, int blockLevel) {
     TypeKind rightType = this->right->getType()->kind;
     TypeKind leftType = this->left->getType()->kind;
 
-    if(!rightType==leftType) {
-        std::cout << "*** Incompatible operands: " << this->right->getType()->typeName() << " = " << this->left->getType()->typeName() << std::endl;
+    if(leftType != rightType) {
+        std::string indentStr(this->column+1, ' ');
+        std::cout << "*** Error line " << this->line << "." << std::endl;
+        std::cout << SourceInfo::sourceCode.at(this->line-1) << std::endl;
+        std::cout << indentStr << "^" << std::endl;
+        std::cout << "*** Incompatible operands: " << this->left->getType()->typeName() << " = " << this->right->getType()->typeName() << std::endl;
+        std::cout << std::endl;
         return false;
     }
 
