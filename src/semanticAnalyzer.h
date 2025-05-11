@@ -60,7 +60,7 @@ void analyzeAST(std::shared_ptr<ASTRootNode> &rootNode, bool verbose) {
 
             functionDecl->check(table, 2);
 
-            // TODO: clear block level 2 before next function
+            table.clearBlockLevelTwo();
             
             continue;
         }

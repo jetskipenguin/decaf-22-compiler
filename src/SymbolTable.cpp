@@ -35,7 +35,20 @@ std::shared_ptr<IdentifierEntry> SymbolTable::lookup(std::string symbolName, int
     if(this->verbose) {
         std::cout << "Looking up symbol: " << symbolName << " at blockLevel: " << blockLevel << std::endl;
     }
-    return std::make_shared<IdentifierEntry>(this->tables.at(blockLevel).at(symbolName));
+
+    try {
+        return std::make_shared<IdentifierEntry>(this->tables.at(blockLevel).at(symbolName));
+    }
+    catch(std::out_of_range e) {
+        return nullptr;
+    }
 }
 
-// TODO: implement function to clear block level 2 ( for when leaving functions)
+
+void SymbolTable::clearBlockLevelTwo() {
+    if(this->verbose) {
+        std::cout << "Clearing block level 2" << std::endl;
+    }
+
+    this->tables.at(2).clear();
+}

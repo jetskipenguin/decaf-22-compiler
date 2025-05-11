@@ -14,8 +14,8 @@ class SymbolTable {
         bool verbose;
         std::vector<std::unordered_map<std::string, IdentifierEntry>> tables;
     public:
-        // TODO: update to not have maps and have the block levels already initialized
         SymbolTable(bool verbose);
         void install(std::string, int blockLevel);
         std::shared_ptr<IdentifierEntry> lookup(std::string, int blockLevel);
+        void clearBlockLevelTwo();
 };
