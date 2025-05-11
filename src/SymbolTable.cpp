@@ -13,6 +13,6 @@ void SymbolTable::install(std::string symbolName, int blockLevel) {
     this->tables.at(blockLevel).insert({symbolName, entryToAdd});
 }
 
-IdentifierEntry SymbolTable::lookup(std::string symbolName, int blockLevel) {
-    return this->tables.at(blockLevel).at(symbolName);
+std::shared_ptr<IdentifierEntry> SymbolTable::lookup(std::string symbolName, int blockLevel) {
+    return std::make_shared<IdentifierEntry>(this->tables.at(blockLevel).at(symbolName));
 }

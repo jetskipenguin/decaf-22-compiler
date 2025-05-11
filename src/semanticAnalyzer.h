@@ -17,12 +17,45 @@ void analyzeAST(std::shared_ptr<ASTRootNode> &rootNode) {
 
         std::shared_ptr<VarDecl> varDecl = std::dynamic_pointer_cast<VarDecl>(decl);
         if(varDecl) {
-            IdentifierEntry entry = table.lookup(varDecl->identifier->name, 1);
-            entry.dataType = varDecl->type->kind;
+            std::shared_ptr<IdentifierEntry> entry = table.lookup(varDecl->identifier->name, 1);
+            entry->dataType = varDecl->type->kind;
+            // TODO: make sure the datatype is saved as intended
+            continue;
         }
 
-        
+        std::shared_ptr<FunctionDecl> functionDecl = std::dynamic_pointer_cast<FunctionDecl>(decl);
+        if(functionDecl) {
+            std::shared_ptr<IdentifierEntry> entry = table.lookup(functionDecl->identifier->name, 1);
+            entry->dataType = functionDecl->returnType->kind;
+            // TODO: make sure the datatype is saved as intended
+            continue;
+        }
 
-        std::cout << decl->identifier->name << std::endl;
+        std::cout << "TypeError: Declaration is neither functional or variable declaration" << std::endl;
     }
+}
+
+void analyzeFunction(std::shared_ptr<FunctionDecl> functionDecl, SymbolTable &table) {
+    
+
+    for (const auto& decl : functionDecl->body->stmts) {
+
+    }
+}
+
+// Prints error if declaration for given identifier name does not exist.
+void verifyVarDeclExists(std::string identifierName, SymbolTable &table) {
+
+    std::shared_ptr<IdentifierEntry> entry = table.lookup(identifierName, 2);
+    if(entry != nullptr) {
+        return;
+    }
+
+    entry = table.lookup(identifierName, 1);
+    if(entry != nullptr) {
+        return;
+    }
+
+    std::cout << "*** No declaration for Function '" << identifierName << "' found";
+    return;
 }

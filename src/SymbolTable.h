@@ -16,5 +16,5 @@ class SymbolTable {
             tables.emplace_back();
         }
         void install(std::string, int blockLevel);
-        IdentifierEntry lookup(std::string, int blockLevel);
+        std::shared_ptr<IdentifierEntry> lookup(std::string, int blockLevel);
 };
