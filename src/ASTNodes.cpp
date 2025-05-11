@@ -82,6 +82,7 @@ ASTNodeType* VarExpr::getType() const {
 }
 
 bool VarExpr::check(SymbolTable &table, int blockLevel) {
+    std::cout << "Checking VarExpr..." << std::endl;
     if(table.lookup(id->name, blockLevel) == nullptr) {
         std::string indentStr(this->id->column-1, ' ');
         std::string errorHighlight(id->name.size(), '^');
@@ -388,6 +389,7 @@ BlockStmt::BlockStmt(int line, int column) : Stmt(line, column) {}
 
 void BlockStmt::check(SymbolTable &table, int blockLevel) {
     for(auto &stmt : this->stmts) {
+        std::cout << "Checking stmt on line: " << stmt->line << std::endl;
         stmt->check(table, blockLevel);
     }
 }
@@ -410,7 +412,9 @@ IfStmt::IfStmt(std::shared_ptr<Expr> cond, std::shared_ptr<Stmt> thenStmt,
 void IfStmt::check(SymbolTable &table, int blockLevel) {
     cond->check(table, blockLevel);
     thenStmt->check(table, blockLevel);
-    elseStmt->check(table, blockLevel);
+    if(elseStmt) {
+        elseStmt->check(table, blockLevel);
+    }
 
     if(cond->getType() != ASTNodeType::boolType) {
         std::string indentStr(this->cond->column, ' ');
@@ -553,6 +557,7 @@ VarDecl::VarDecl(ASTNodeType* type, std::shared_ptr<Identifier> id,
     }
 
 void VarDecl::check(SymbolTable &table, int blockLevel) {
+    std::cout << "Checking Var Decl..." << std::endl;
     if(this->init != nullptr) {
         this->init->check(table, blockLevel);
     }
@@ -592,9 +597,11 @@ void FunctionDecl::check(SymbolTable &table, int blockLevel) {
     std::cout << "Checking func decl..." << std::endl;
 
     for(auto &formal : this->formals) {
+        std::cout << "Checking formals..." << std::endl;
         formal->check(table, blockLevel);
     }
 
+    std::cout << "Checking body" << std::endl;
     this->body->check(table, blockLevel);
 }
 
