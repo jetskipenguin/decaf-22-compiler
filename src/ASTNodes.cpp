@@ -317,10 +317,10 @@ bool AssignExpr::check(SymbolTable &table, int blockLevel) {
         return false;
     }
 
-    TypeKind rightType = this->right->getType()->kind;
-    TypeKind leftType = this->left->getType()->kind;
+    ASTNodeType* rightType = this->right->getType();
+    ASTNodeType* leftType = this->left->getType();
 
-    if(leftType != rightType) {
+    if(!leftType->isAssignableTo(rightType)) {
         std::string indentStr(this->column+1, ' ');
         std::cout << "*** Error line " << this->line << "." << std::endl;
         std::cout << SourceInfo::sourceCode.at(this->line-1) << std::endl;
