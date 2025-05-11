@@ -411,8 +411,7 @@ VarDecl::VarDecl(ASTNodeType* type, std::shared_ptr<Identifier> id,
     }
 
 void VarDecl::check(SymbolTable &table, int blockLevel) {
-    // TODO: call check on expression (implement check on all expression classes)
-    return;
+    this->init->check(table, blockLevel);
 }
 
 void VarDecl::print(int indent) const {
