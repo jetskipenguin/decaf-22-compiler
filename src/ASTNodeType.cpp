@@ -23,7 +23,7 @@ bool ASTNodeType::isEquivalentTo(const ASTNodeType* other) const {
 
 bool ASTNodeType::isAssignableTo(const ASTNodeType* other) const {
     if (kind == Null) return true;
-    if (kind == Error || other->kind == Error) return false;
+    if (kind == Error || other->kind == Error) return true;
     if (isNumeric() && other->isNumeric()) return true;
     return isEquivalentTo(other);
 }
