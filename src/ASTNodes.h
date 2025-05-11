@@ -135,6 +135,7 @@ public:
               int line = 0, int column = 0);
     ASTNodeType* getType() const override;
     void print(int indent = 0) const override;
+    void check(SymbolTable &table, int blockLevel);
 };
 
 class Stmt : public Node {

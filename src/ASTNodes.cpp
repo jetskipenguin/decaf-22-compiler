@@ -192,10 +192,12 @@ void UnaryExpr::print(int indent) const {
 CallExpr::CallExpr(std::shared_ptr<Identifier> id, int line, int column)
     : Expr(line, column), id(id), returnType(nullptr) {}
 
+
 void CallExpr::check(SymbolTable &table, int blockLevel) {
-    if(table.lookup(id->name, blockLevel) == nullptr) {
-        std::cout << "*** No declaration for Function '" << id->name << "' found" << std::endl;
-    }
+    // if(table.lookup(id->name, blockLevel) == nullptr) {
+    //     std::cout << "*** No declaration for Function '" << id->name << "' found" << std::endl;
+    // } //TODO: figure out a function table
+    return;
 }
 
 void CallExpr::addArg(std::shared_ptr<Expr> arg) {
@@ -222,6 +224,14 @@ void CallExpr::print(int indent) const {
 AssignExpr::AssignExpr(std::shared_ptr<Expr> left, 
                       std::shared_ptr<Expr> right, int line, int column)
     : Expr(line, column), left(left), right(right) {}
+
+void AssignExpr::check(SymbolTable &table, int blockLevel) {
+    ASTNodeType* rightType = this->right->getType();
+    ASTNodeType* leftType = this->left->getType();
+    if(!rightType->isAssignableTo(leftType)) {
+        std::cout << "*** Incompatible operands: " << rightType->typeName() << " = " << rightType->typeName();
+    }
+}
 
 ASTNodeType* AssignExpr::getType() const { 
     return left->getType(); 

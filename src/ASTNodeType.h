@@ -24,7 +24,7 @@ public:
     bool isNumeric() const;
     bool isEquivalentTo(const ASTNodeType* other) const;
     bool isAssignableTo(const ASTNodeType* other) const;
-    const char* typeName() const;  // Add this line
+    const char* typeName() const;
     void print(int indent = 0) const override;
 
     static ASTNodeType* voidType;
