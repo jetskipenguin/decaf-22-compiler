@@ -484,10 +484,12 @@ FunctionDecl::FunctionDecl(ASTNodeType* returnType,
     }
 
 void FunctionDecl::check(SymbolTable &table, int blockLevel) {
-    // this->body->stmts
 
-    // TODO: call check function on all stmts that have expressions
-    return;
+    for(auto &formal : this->formals) {
+        formal->check(table, blockLevel);
+    }
+
+    this->body->check(table, blockLevel);
 }
 
 void FunctionDecl::addFormal(std::shared_ptr<VarDecl> formal) {
