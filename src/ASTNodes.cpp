@@ -83,7 +83,13 @@ ASTNodeType* VarExpr::getType() const {
 
 bool VarExpr::check(SymbolTable &table, int blockLevel) {
     if(table.lookup(id->name, blockLevel) == nullptr) {
-        std::cout << "*** No declaration for variable '" << id->name << "' found" << std::endl;
+        std::string indentStr(this->id->column-1, ' ');
+        std::string errorHighlight(id->name.size(), '^');
+        std::cout << "*** Error line " << this->line << "." << std::endl;
+        std::cout << SourceInfo::sourceCode.at(this->line-1) << std::endl;
+        std::cout << indentStr << errorHighlight << std::endl;
+        std::cout << "*** No declaration found for variable '" << id->name << "'" << std::endl;
+        std::cout << std::endl;
         return false;
     }
     return true;
