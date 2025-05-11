@@ -9,6 +9,10 @@ void Identifier::print(int indent) const {
     std::cout << "  " << line << std::string(indent, ' ') << "Identifier: " << name << std::endl;
 }
 
+void Expr::check(SymbolTable &table, int blockLevel) {
+    return;
+}
+
 IntLiteral::IntLiteral(int value, int line, int column)
     : LiteralExpr(line, column), value(value) {}
 
@@ -204,6 +208,10 @@ void BinaryExpr::print(int indent) const {
 
 UnaryExpr::UnaryExpr(UnaryOp op, std::shared_ptr<Expr> expr, int line, int column)
     : Expr(line, column), op(op), expr(expr) {}
+
+void UnaryExpr::check(SymbolTable &table, int blockLevel) {
+    this->expr->check(table, blockLevel);
+}
 
 ASTNodeType* UnaryExpr::getType() const {
     ASTNodeType* exprType = expr->getType();
