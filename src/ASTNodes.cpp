@@ -553,8 +553,7 @@ VarDecl::VarDecl(ASTNodeType* type, std::shared_ptr<Identifier> id,
     }
 
 void VarDecl::check(SymbolTable &table, int blockLevel) {
-    std::cout << "Checking var decl..." << std::endl;
-    if(this->init) {
+    if(this->init != nullptr) {
         this->init->check(table, blockLevel);
     }
 }
@@ -570,7 +569,9 @@ void VarDecl::print(int indent) const {
 }
 
 VarDeclStmt::VarDeclStmt(std::shared_ptr<VarDecl> varDecl, int line, int column)
-    : Stmt(line, column), varDecl(varDecl) {}
+    : Stmt(line, column), varDecl(varDecl) {
+        varDecl->init = nullptr;
+    }
 
 void VarDeclStmt::check(SymbolTable &table, int blockLevel) {
     this->varDecl->check(table, blockLevel);

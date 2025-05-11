@@ -248,6 +248,7 @@ public:
 };
 
 class ReadLineExpr : public Expr {
+public:
     ReadLineExpr(int line = 0, int column = 0);
     ASTNodeType* getType() const override;
     void print(int indent) const override;
