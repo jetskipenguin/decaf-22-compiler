@@ -804,6 +804,15 @@ std::shared_ptr<Expr> ASTBuilder::parsePrimary() {
         consume(TokenType::T_Operator, ")");
         return std::make_shared<ReadIntegerExpr>(line, column);
     }
+
+    if (check(TokenType::T_ReadLine)) {
+        int line = currentToken().line;
+        int column = currentToken().column;
+        consume(TokenType::T_ReadLine);
+        consume(TokenType::T_Operator, "(");
+        consume(TokenType::T_Operator, ")");
+        return std::make_shared<ReadIntegerExpr>(line, column);
+    }
     
     // Remove white space
     std::string srcLine = sourceCode.at(line-1);

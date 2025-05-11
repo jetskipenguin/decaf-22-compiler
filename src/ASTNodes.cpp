@@ -411,6 +411,15 @@ void IfStmt::check(SymbolTable &table, int blockLevel) {
     cond->check(table, blockLevel);
     thenStmt->check(table, blockLevel);
     elseStmt->check(table, blockLevel);
+
+    if(cond->getType() != ASTNodeType::boolType) {
+        std::string indentStr(this->cond->column, ' ');
+        std::cout << "*** Error line " << this->line << "." << std::endl;
+        std::cout << SourceInfo::sourceCode.at(this->line-1) << std::endl;
+        std::cout << indentStr << "^^^^^^^^^^^^^" << std::endl; // TODO: make the length of the error highlight variable
+        std::cout << "*** Test expression must have boolean type" << std::endl;
+        std::cout << std::endl;
+    }
 }
 
 void IfStmt::print(int indent) const {
@@ -525,6 +534,16 @@ ASTNodeType* ReadIntegerExpr::getType() const {
 
 void ReadIntegerExpr::print(int indent) const {
     std::cout << "  " << line << std::string(indent, ' ') << "ReadIntegerExpr: " << std::endl;
+}
+
+ReadLineExpr::ReadLineExpr(int line, int column) : Expr(line, column) {}
+
+ASTNodeType* ReadLineExpr::getType() const { 
+    return ASTNodeType::stringType; 
+}
+
+void ReadLineExpr::print(int indent) const {
+    std::cout << "  " << line << std::string(indent, ' ') << "ReadLineExpr: " << std::endl;
 }
 
 VarDecl::VarDecl(ASTNodeType* type, std::shared_ptr<Identifier> id,
