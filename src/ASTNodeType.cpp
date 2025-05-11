@@ -18,7 +18,7 @@ bool ASTNodeType::isVoid() const { return kind == Void; }
 bool ASTNodeType::isNumeric() const { return kind == Int || kind == Double; }
 
 bool ASTNodeType::isEquivalentTo(const ASTNodeType* other) const {
-    return kind == other->kind;
+    return this->kind == other->kind;
 }
 
 bool ASTNodeType::isAssignableTo(const ASTNodeType* other) const {

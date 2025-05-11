@@ -19,7 +19,7 @@ public:
     virtual ASTNodeType* getType() const = 0;
     void setIsArgument(bool isArg) { isArgument = isArg; }
     bool getIsArgument() const { return isArgument; }
-    virtual void check(SymbolTable &table, int blockLevel);
+    virtual bool check(SymbolTable &table, int blockLevel);
 };
 
 class Identifier : public Node {
@@ -80,7 +80,7 @@ public:
 
     VarExpr(std::shared_ptr<Identifier> id, int line = 0, int column = 0, ASTNodeType* type = ASTNodeType::errorType);
     ASTNodeType* getType() const override;
-    void check(SymbolTable &table, int blockLevel) override;
+    bool check(SymbolTable &table, int blockLevel) override;
     void print(int indent = 0) const override;
 };
 
@@ -101,7 +101,7 @@ public:
     ASTNodeType* getType() const override;
     void print(int indent = 0) const override;
     std::string getOpAsString();
-    void check(SymbolTable &table, int blockLevel) override;
+    bool check(SymbolTable &table, int blockLevel) override;
 };
 
 class UnaryExpr : public Expr {
@@ -114,7 +114,7 @@ public:
     UnaryExpr(UnaryOp op, std::shared_ptr<Expr> expr, int line = 0, int column = 0);
     ASTNodeType* getType() const override;
     void print(int indent = 0) const override;
-    void check(SymbolTable &table, int blockLevel) override;
+    bool check(SymbolTable &table, int blockLevel) override;
 };
 
 class CallExpr : public Expr {
@@ -127,7 +127,7 @@ public:
     void addArg(std::shared_ptr<Expr> arg);
     ASTNodeType* getType() const override;
     void print(int indent = 0) const override;
-    void check(SymbolTable &table, int blockLevel) override;
+    bool check(SymbolTable &table, int blockLevel) override;
 };
 
 class AssignExpr : public Expr {
@@ -139,7 +139,7 @@ public:
               int line = 0, int column = 0);
     ASTNodeType* getType() const override;
     void print(int indent = 0) const override;
-    void check(SymbolTable &table, int blockLevel) override;
+    bool check(SymbolTable &table, int blockLevel) override;
 };
 
 class Stmt : public Node {

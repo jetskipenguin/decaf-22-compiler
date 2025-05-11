@@ -9,8 +9,8 @@ void Identifier::print(int indent) const {
     std::cout << "  " << line << std::string(indent, ' ') << "Identifier: " << name << std::endl;
 }
 
-void Expr::check(SymbolTable &table, int blockLevel) {
-    return;
+bool Expr::check(SymbolTable &table, int blockLevel) {
+    return true;
 }
 
 IntLiteral::IntLiteral(int value, int line, int column)
@@ -79,10 +79,12 @@ ASTNodeType* VarExpr::getType() const {
     return varType; 
 }
 
-void VarExpr::check(SymbolTable &table, int blockLevel) {
+bool VarExpr::check(SymbolTable &table, int blockLevel) {
     if(table.lookup(id->name, blockLevel) == nullptr) {
         std::cout << "*** No declaration for variable '" << id->name << "' found" << std::endl;
+        return false;
     }
+    return true;
 }
 
 void VarExpr::print(int indent) const {
@@ -130,12 +132,17 @@ std::string BinaryExpr::getOpAsString() {
     return "";
 }
 
-void BinaryExpr::check(SymbolTable &table, int blockLevel) {
+bool BinaryExpr::check(SymbolTable &table, int blockLevel) {
+    std::cout << "In binary expr" << std::endl;
     ASTNodeType* leftType = this->left->getType();
     ASTNodeType* rightType = this->right->getType();
+    this->left->print();
+    // TODO: fix typename here, for some reason it returns error on sample: /samples/semantic_analyzer/bad1.decaf 
     if(!rightType->isAssignableTo(leftType)) {
         std::cout << "*** Incompatible operands: " << leftType->typeName() << " " << this->getOpAsString() << " " << rightType->typeName() << std::endl;
+        return false;
     }
+    return true;
 }
 
 ASTNodeType* BinaryExpr::getType() const {
@@ -209,8 +216,8 @@ void BinaryExpr::print(int indent) const {
 UnaryExpr::UnaryExpr(UnaryOp op, std::shared_ptr<Expr> expr, int line, int column)
     : Expr(line, column), op(op), expr(expr) {}
 
-void UnaryExpr::check(SymbolTable &table, int blockLevel) {
-    this->expr->check(table, blockLevel);
+bool UnaryExpr::check(SymbolTable &table, int blockLevel) {
+    return this->expr->check(table, blockLevel);
 }
 
 ASTNodeType* UnaryExpr::getType() const {
@@ -241,11 +248,11 @@ CallExpr::CallExpr(std::shared_ptr<Identifier> id, int line, int column)
     : Expr(line, column), id(id), returnType(nullptr) {}
 
 
-void CallExpr::check(SymbolTable &table, int blockLevel) {
+bool CallExpr::check(SymbolTable &table, int blockLevel) {
     // if(table.lookup(id->name, blockLevel) == nullptr) {
     //     std::cout << "*** No declaration for Function '" << id->name << "' found" << std::endl;
     // } //TODO: figure out a function table
-    return;
+    return true;
 }
 
 void CallExpr::addArg(std::shared_ptr<Expr> arg) {
@@ -273,12 +280,23 @@ AssignExpr::AssignExpr(std::shared_ptr<Expr> left,
                       std::shared_ptr<Expr> right, int line, int column)
     : Expr(line, column), left(left), right(right) {}
 
-void AssignExpr::check(SymbolTable &table, int blockLevel) {
-    ASTNodeType* rightType = this->right->getType();
-    ASTNodeType* leftType = this->left->getType();
-    if(!rightType->isAssignableTo(leftType)) {
-        std::cout << "*** Incompatible operands: " << rightType->typeName() << " = " << rightType->typeName() << std::endl;
+bool AssignExpr::check(SymbolTable &table, int blockLevel) {
+
+    std::cout << "In assignment EXPR" << std::endl;
+
+    if(!this->right->check(table, blockLevel)) {
+        return false;
     }
+
+    TypeKind rightType = this->right->getType()->kind;
+    TypeKind leftType = this->left->getType()->kind;
+
+    if(!rightType==leftType) {
+        std::cout << "*** Incompatible operands: " << this->right->getType()->typeName() << " = " << this->left->getType()->typeName() << std::endl;
+        return false;
+    }
+
+    return true;
 }
 
 ASTNodeType* AssignExpr::getType() const { 

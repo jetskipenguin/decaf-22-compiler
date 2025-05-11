@@ -78,6 +78,7 @@ void ASTBuilder::popScope() {
 }
 
 void ASTBuilder::addToCurrentScope(const std::string& name, ASTNodeType* type) {
+    std::cout << "Adding variable " << name << " to current scope" << std::endl;
     if (symbolTable.empty()) {
         pushScope(); // Ensure there's at least one scope
     }
@@ -365,6 +366,7 @@ std::shared_ptr<Stmt> ASTBuilder::parseStmt() {
         auto varDecl = parseVarDecl();
         if (!varDecl) return nullptr;
         
+        addToCurrentScope(varDecl->identifier->name, varDecl->type);
         return std::make_shared<VarDeclStmt>(varDecl, varDecl->line, varDecl->column);
     }
     

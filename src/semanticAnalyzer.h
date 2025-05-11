@@ -93,9 +93,3 @@ void verifyVarDeclExists(std::string identifierName, SymbolTable &table) {
     std::cout << "*** No declaration for Function '" << identifierName << "' found";
     return;
 }
-
-void verifyExprOperands(ASTNodeType* leftOperand, ASTNodeType* rightOperand) {
-    if(!leftOperand->isAssignableTo(rightOperand)) {
-        std::cout << "*** Incompatible operands: " << leftOperand->typeName() << " * " << rightOperand->typeName() << std::endl;
-    }
-}
