@@ -402,6 +402,11 @@ VarDecl::VarDecl(ASTNodeType* type, std::shared_ptr<Identifier> id,
         identifier = id;
     }
 
+void VarDecl::check(SymbolTable &table, int blockLevel) {
+    // TODO: call check on expression (implement check on all expression classes)
+    return;
+}
+
 void VarDecl::print(int indent) const {
     std::cout << "  " << line << std::string(indent, ' ') << "VarDecl: " << std::endl;
     type->print(indent + 6);
@@ -424,6 +429,13 @@ FunctionDecl::FunctionDecl(ASTNodeType* returnType,
     : Decl(line, column), returnType(returnType) {
         identifier = id;
     }
+
+void FunctionDecl::check(SymbolTable &table, int blockLevel) {
+    // this->body->stmts
+
+    // TODO: call check function on all stmts that have expressions
+    return;
+}
 
 void FunctionDecl::addFormal(std::shared_ptr<VarDecl> formal) {
     formals.push_back(formal);

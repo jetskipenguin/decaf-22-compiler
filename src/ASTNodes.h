@@ -230,6 +230,7 @@ class Decl : public Node {
 public:
     using Node::Node;
     std::shared_ptr<Identifier> identifier;
+    virtual void check(SymbolTable &table, int blockLevel) = 0;
 };
 
 // Var declaration that includes assignment
@@ -241,6 +242,7 @@ public:
     VarDecl(ASTNodeType* type, std::shared_ptr<Identifier> id,
             std::shared_ptr<Expr> init = nullptr, int line = 0, int column = 0);
     void print(int indent = 0) const override;
+    void check(SymbolTable &table, int blockLevel) override;
 };
 
 // Var declaration that doesn't include assignment
@@ -262,6 +264,7 @@ public:
     void addFormal(std::shared_ptr<VarDecl> formal);
     void setBody(std::shared_ptr<BlockStmt> functionBody);
     void print(int indent = 0) const override;
+    void check(SymbolTable &table, int blockLevel) override;
 };
 
 class ASTRootNode : public Node {
