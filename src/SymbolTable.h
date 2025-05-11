@@ -11,12 +11,11 @@
 // Block level 2 = params and local vars
 class SymbolTable {
     private:
+        bool verbose;
         std::vector<std::unordered_map<std::string, IdentifierEntry>> tables;
     public:
         // TODO: update to not have maps and have the block levels already initialized
-        SymbolTable() {
-            tables.emplace_back();
-        }
+        SymbolTable(bool verbose);
         void install(std::string, int blockLevel);
         std::shared_ptr<IdentifierEntry> lookup(std::string, int blockLevel);
 };

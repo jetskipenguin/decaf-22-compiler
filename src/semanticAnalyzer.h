@@ -1,10 +1,9 @@
 #include "SymbolTable.h"
 #include <stdexcept>
 
-void analyzeAST(std::shared_ptr<ASTRootNode> &rootNode) {
+void analyzeAST(std::shared_ptr<ASTRootNode> &rootNode, bool verbose) {
 
-    SymbolTable table;
-
+    SymbolTable table(verbose);
 
     for (const auto& decl : rootNode->decls) {
         
@@ -18,6 +17,10 @@ void analyzeAST(std::shared_ptr<ASTRootNode> &rootNode) {
         // Check if global variable, then record in 
         std::shared_ptr<VarDecl> varDecl = std::dynamic_pointer_cast<VarDecl>(decl);
         if(varDecl) {
+            if(verbose) {
+                std::cout << "Analyzing VarDecl: " << varDecl->identifier->name << std::endl;
+            }
+
             std::shared_ptr<IdentifierEntry> entry = table.lookup(varDecl->identifier->name, 1);
             entry->type = varDecl->type;
             varDecl->check(table, 1);
@@ -26,6 +29,10 @@ void analyzeAST(std::shared_ptr<ASTRootNode> &rootNode) {
 
         std::shared_ptr<FunctionDecl> functionDecl = std::dynamic_pointer_cast<FunctionDecl>(decl);
         if(functionDecl) {
+            if(verbose) {
+                std::cout << "Analyzing FunctionDecl: " << functionDecl->identifier->name << std::endl;
+            }
+
             std::shared_ptr<IdentifierEntry> entry = table.lookup(functionDecl->identifier->name, 1);
             entry->type = functionDecl->returnType;
             
