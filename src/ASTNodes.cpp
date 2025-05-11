@@ -277,7 +277,7 @@ void AssignExpr::check(SymbolTable &table, int blockLevel) {
     ASTNodeType* rightType = this->right->getType();
     ASTNodeType* leftType = this->left->getType();
     if(!rightType->isAssignableTo(leftType)) {
-        std::cout << "*** Incompatible operands: " << rightType->typeName() << " = " << rightType->typeName();
+        std::cout << "*** Incompatible operands: " << rightType->typeName() << " = " << rightType->typeName() << std::endl;
     }
 }
 
@@ -453,7 +453,10 @@ VarDecl::VarDecl(ASTNodeType* type, std::shared_ptr<Identifier> id,
     }
 
 void VarDecl::check(SymbolTable &table, int blockLevel) {
-    this->init->check(table, blockLevel);
+    std::cout << "Checking var decl..." << std::endl;
+    if(this->init) {
+        this->init->check(table, blockLevel);
+    }
 }
 
 void VarDecl::print(int indent) const {
@@ -484,6 +487,8 @@ FunctionDecl::FunctionDecl(ASTNodeType* returnType,
     }
 
 void FunctionDecl::check(SymbolTable &table, int blockLevel) {
+
+    std::cout << "Checking func decl..." << std::endl;
 
     for(auto &formal : this->formals) {
         formal->check(table, blockLevel);

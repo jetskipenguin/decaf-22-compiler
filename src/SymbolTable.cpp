@@ -16,7 +16,7 @@ SymbolTable::SymbolTable(bool verbose) {
 void SymbolTable::install(std::string symbolName, int blockLevel) {
 
     if(this->verbose) {
-        std::cout << "Installed symbol: " << symbolName << std::endl;
+        std::cout << "Installed symbol: " << symbolName << " at blockLevel: " << blockLevel << std::endl;
     }
     
     IdentifierEntry entryToAdd;
