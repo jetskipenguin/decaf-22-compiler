@@ -295,11 +295,21 @@ void AssignExpr::print(int indent) const {
 ExprStmt::ExprStmt(std::shared_ptr<Expr> expr, int line, int column)
     : Stmt(line, column), expr(expr) {}
 
+void ExprStmt::check(SymbolTable &table, int blockLevel) {
+    expr->check(table, blockLevel);
+}
+
 void ExprStmt::print(int indent) const {
     expr->print(indent);
 }
 
 BlockStmt::BlockStmt(int line, int column) : Stmt(line, column) {}
+
+void BlockStmt::check(SymbolTable &table, int blockLevel) {
+    for(auto &stmt : this->stmts) {
+        stmt->check(table, blockLevel);
+    }
+}
 
 void BlockStmt::addStmt(std::shared_ptr<Stmt> stmt) {
     stmts.push_back(stmt);
@@ -315,6 +325,12 @@ void BlockStmt::print(int indent) const {
 IfStmt::IfStmt(std::shared_ptr<Expr> cond, std::shared_ptr<Stmt> thenStmt,
                std::shared_ptr<Stmt> elseStmt, int line, int column)
     : Stmt(line, column), cond(cond), thenStmt(thenStmt), elseStmt(elseStmt) {}
+
+void IfStmt::check(SymbolTable &table, int blockLevel) {
+    cond->check(table, blockLevel);
+    thenStmt->check(table, blockLevel);
+    elseStmt->check(table, blockLevel);
+}
 
 void IfStmt::print(int indent) const {
     std::cout << std::string(indent, ' ') << "IfStmt: " << std::endl;
@@ -332,6 +348,11 @@ WhileStmt::WhileStmt(std::shared_ptr<Expr> cond,
                      std::shared_ptr<Stmt> body, int line, int column)
     : Stmt(line, column), cond(cond), body(body) {}
 
+void WhileStmt::check(SymbolTable &table, int blockLevel) {
+    this->cond->check(table, blockLevel);
+    this->body->check(table, blockLevel);
+}
+
 void WhileStmt::print(int indent) const {
     std::cout << std::string(indent, ' ') << "WhileStmt: " << std::endl;
     std::cout << std::string(indent, ' ') << "  Condition: " << std::endl;
@@ -345,6 +366,13 @@ ForStmt::ForStmt(std::shared_ptr<Expr> init, std::shared_ptr<Expr> cond,
                  int line, int column)
     : Stmt(line, column), init(init), cond(cond), 
       update(update), body(body) {}
+
+void ForStmt::check(SymbolTable &table, int blockLevel) {
+    init->check(table, blockLevel);
+    cond->check(table, blockLevel);
+    update->check(table, blockLevel);
+    body->check(table, blockLevel);
+}
 
 void ForStmt::print(int indent) const {
     std::cout << std::string(indent, ' ') << "ForStmt: " << std::endl;
@@ -367,6 +395,10 @@ void ForStmt::print(int indent) const {
 ReturnStmt::ReturnStmt(std::shared_ptr<Expr> expr, int line, int column)
     : Stmt(line, column), expr(expr) {}
 
+void ReturnStmt::check(SymbolTable &table, int blockLevel) {
+    this->expr->check(table, blockLevel);
+}
+
 void ReturnStmt::print(int indent) const {
     std::cout << "  " << line << std::string(indent, ' ') << "ReturnStmt: " << std::endl;
     if (expr) {
@@ -376,11 +408,21 @@ void ReturnStmt::print(int indent) const {
 
 BreakStmt::BreakStmt(int line, int column) : Stmt(line, column) {}
 
+void BreakStmt::check(SymbolTable &table, int blockLevel) {
+    return;
+}
+
 void BreakStmt::print(int indent) const {
     std::cout << std::string(indent, ' ') << "BreakStmt" << std::endl;
 }
 
 PrintStmt::PrintStmt(int line, int column) : Stmt(line, column) {}
+
+void PrintStmt::check(SymbolTable &table, int blockLevel) {
+    for( auto &expr : this->args) {
+        expr->check(table, blockLevel);
+    }
+}
 
 void PrintStmt::addArg(std::shared_ptr<Expr> arg) {
     arg->setIsArgument(true);
@@ -426,6 +468,10 @@ void VarDecl::print(int indent) const {
 
 VarDeclStmt::VarDeclStmt(std::shared_ptr<VarDecl> varDecl, int line, int column)
     : Stmt(line, column), varDecl(varDecl) {}
+
+void VarDeclStmt::check(SymbolTable &table, int blockLevel) {
+    this->varDecl->check(table, blockLevel);
+}
 
 void VarDeclStmt::print(int indent) const {
     varDecl->print(indent);

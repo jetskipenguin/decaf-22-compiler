@@ -145,6 +145,7 @@ public:
 class Stmt : public Node {
 public:
     using Node::Node;
+    virtual void check(SymbolTable &table, int blockLevel) = 0;
 };
 
 class ExprStmt : public Stmt {
@@ -153,6 +154,7 @@ public:
 
     ExprStmt(std::shared_ptr<Expr> expr, int line = 0, int column = 0);
     void print(int indent = 0) const override;
+    void check(SymbolTable &table, int blockLevel) override;
 };
 
 class BlockStmt : public Stmt {
@@ -162,6 +164,7 @@ public:
     BlockStmt(int line = 0, int column = 0);
     void addStmt(std::shared_ptr<Stmt> stmt);
     void print(int indent = 0) const override;
+    void check(SymbolTable &table, int blockLevel) override;
 };
 
 class IfStmt : public Stmt {
@@ -173,6 +176,7 @@ public:
     IfStmt(std::shared_ptr<Expr> cond, std::shared_ptr<Stmt> thenStmt,
            std::shared_ptr<Stmt> elseStmt = nullptr, int line = 0, int column = 0);
     void print(int indent = 0) const override;
+    void check(SymbolTable &table, int blockLevel) override;
 };
 
 class WhileStmt : public Stmt {
@@ -183,6 +187,7 @@ public:
     WhileStmt(std::shared_ptr<Expr> cond, std::shared_ptr<Stmt> body,
              int line = 0, int column = 0);
     void print(int indent = 0) const override;
+    void check(SymbolTable &table, int blockLevel) override;
 };
 
 class ForStmt : public Stmt {
@@ -196,6 +201,7 @@ public:
             std::shared_ptr<Expr> update, std::shared_ptr<Stmt> body,
             int line = 0, int column = 0);
     void print(int indent = 0) const override;
+    void check(SymbolTable &table, int blockLevel) override;
 };
 
 class ReturnStmt : public Stmt {
@@ -204,12 +210,14 @@ public:
 
     ReturnStmt(std::shared_ptr<Expr> expr = nullptr, int line = 0, int column = 0);
     void print(int indent = 0) const override;
+    void check(SymbolTable &table, int blockLevel) override;
 };
 
 class BreakStmt : public Stmt {
 public:
     BreakStmt(int line = 0, int column = 0);
     void print(int indent = 0) const override;
+    void check(SymbolTable &table, int blockLevel) override;
 };
 
 class PrintStmt : public Stmt {
@@ -219,6 +227,7 @@ public:
     PrintStmt(int line = 0, int column = 0);
     void addArg(std::shared_ptr<Expr> arg);
     void print(int indent = 0) const override;
+    void check(SymbolTable &table, int blockLevel) override;
 };
 
 class ReadIntegerExpr : public Expr {
@@ -248,11 +257,13 @@ public:
 };
 
 // Var declaration that doesn't include assignment
+// TODO: get rid of this type and just use a VarDecl with init set to null
 class VarDeclStmt : public Stmt {
 public:
     std::shared_ptr<VarDecl> varDecl;
     VarDeclStmt(std::shared_ptr<VarDecl> varDecl, int line = 0, int column = 0);
     void print(int indent = 0) const override;
+    void check(SymbolTable &table, int blockLevel) override;
 };
 
 class FunctionDecl : public Decl {
