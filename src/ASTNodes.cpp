@@ -2,6 +2,8 @@
 #include <iostream>
 #include <string>
 
+std::vector<std::string> SourceInfo::sourceCode;
+
 Identifier::Identifier(const std::string& name, int line, int column)
     : Node(line, column), name(name) {}
 
@@ -139,7 +141,12 @@ bool BinaryExpr::check(SymbolTable &table, int blockLevel) {
     this->left->print();
     // TODO: fix typename here, for some reason it returns error on sample: /samples/semantic_analyzer/bad1.decaf 
     if(!rightType->isAssignableTo(leftType)) {
+        std::string indentStr(this->column+1, ' ');
+        std::cout << "*** Error line " << this->line << "." << std::endl;
+        std::cout << SourceInfo::sourceCode.at(this->line-1) << std::endl;
+        std::cout << indentStr << "^" << std::endl;
         std::cout << "*** Incompatible operands: " << leftType->typeName() << " " << this->getOpAsString() << " " << rightType->typeName() << std::endl;
+        std::cout << std::endl;
         return false;
     }
     return true;

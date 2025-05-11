@@ -11,6 +11,15 @@
 class ASTNodeType;
 class Identifier;
 
+class SourceInfo {
+    public:
+        static std::vector<std::string> sourceCode; // For logging purposes only
+
+        SourceInfo() {
+
+        };
+};
+
 class Expr : public Node {
 protected:
     bool isArgument = false;
