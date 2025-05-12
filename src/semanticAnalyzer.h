@@ -47,8 +47,6 @@ void analyzeAST(std::shared_ptr<ASTRootNode> &rootNode, bool verbose) {
                 entry->params.push_back(param->type);
             }
 
-            std::cout << "Recorded " << entry->params.size() << " for function: " << entry->id.name << std::endl;
-
             // Record local variables in symbol table
             for(auto &stmt : functionDecl->body->stmts) {
                 std::shared_ptr<VarDeclStmt> maybeLocalVar = std::dynamic_pointer_cast<VarDeclStmt>(stmt);

@@ -127,7 +127,7 @@ int main(int argc, char* argv[]) {
 
     // ast->print(0);
 
-    analyzeAST(ast, true);
+    analyzeAST(ast, false);
         
     return 0;
 }
