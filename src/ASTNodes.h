@@ -6,6 +6,7 @@
 #include <iostream>
 #include "Token.h"
 #include "SymbolTable.h"
+#include "CodeGenerator.h"
 
 // Forward declarations
 class ASTNodeType;
@@ -29,6 +30,7 @@ public:
     void setIsArgument(bool isArg) { isArgument = isArg; }
     bool getIsArgument() const { return isArgument; }
     virtual bool check(SymbolTable &table, int blockLevel);
+    virtual void generate(CodeGenerator &generator, SymbolTable &table);
 };
 
 class Identifier : public Node {
@@ -91,6 +93,7 @@ public:
     ASTNodeType* getType() const override;
     bool check(SymbolTable &table, int blockLevel) override;
     void print(int indent = 0) const override;
+    void generate(CodeGenerator &generator, SymbolTable &table);
 };
 
 class BinaryExpr : public Expr {
@@ -112,6 +115,7 @@ public:
     std::string getOpAsString();
     bool check(SymbolTable &table, int blockLevel) override;
     bool isValidOperandForGivenTypes();
+    void generate(CodeGenerator &generator, SymbolTable &table);
 };
 
 class UnaryExpr : public Expr {
@@ -125,6 +129,7 @@ public:
     ASTNodeType* getType() const override;
     void print(int indent = 0) const override;
     bool check(SymbolTable &table, int blockLevel) override;
+    void generate(CodeGenerator &generator, SymbolTable &table);
 };
 
 class CallExpr : public Expr {
@@ -138,6 +143,7 @@ public:
     ASTNodeType* getType() const override;
     void print(int indent = 0) const override;
     bool check(SymbolTable &table, int blockLevel) override;
+    void generate(CodeGenerator &generator, SymbolTable &table);
 };
 
 class AssignExpr : public Expr {
@@ -150,12 +156,14 @@ public:
     ASTNodeType* getType() const override;
     void print(int indent = 0) const override;
     bool check(SymbolTable &table, int blockLevel) override;
+    void generate(CodeGenerator &generator, SymbolTable &table);
 };
 
 class Stmt : public Node {
 public:
     using Node::Node;
     virtual void check(SymbolTable &table, int blockLevel) = 0;
+    virtual void generate(CodeGenerator &generator, SymbolTable &table) = 0;
 };
 
 class ExprStmt : public Stmt {
@@ -165,6 +173,7 @@ public:
     ExprStmt(std::shared_ptr<Expr> expr, int line = 0, int column = 0);
     void print(int indent = 0) const override;
     void check(SymbolTable &table, int blockLevel) override;
+    void generate(CodeGenerator &generator, SymbolTable &table) override;
 };
 
 class BlockStmt : public Stmt {
@@ -175,6 +184,7 @@ public:
     void addStmt(std::shared_ptr<Stmt> stmt);
     void print(int indent = 0) const override;
     void check(SymbolTable &table, int blockLevel) override;
+    void generate(CodeGenerator &generator, SymbolTable &table) override;
 };
 
 class IfStmt : public Stmt {
@@ -188,6 +198,7 @@ public:
            std::shared_ptr<Stmt> elseStmt = nullptr, int line = 0, int column = 0, int condLength = 0);
     void print(int indent = 0) const override;
     void check(SymbolTable &table, int blockLevel) override;
+    void generate(CodeGenerator &generator, SymbolTable &table) override;
 };
 
 class WhileStmt : public Stmt {
@@ -199,6 +210,7 @@ public:
              int line = 0, int column = 0);
     void print(int indent = 0) const override;
     void check(SymbolTable &table, int blockLevel) override;
+    void generate(CodeGenerator &generator, SymbolTable &table) override;
 };
 
 class ForStmt : public Stmt {
@@ -213,6 +225,7 @@ public:
             int line = 0, int column = 0);
     void print(int indent = 0) const override;
     void check(SymbolTable &table, int blockLevel) override;
+    void generate(CodeGenerator &generator, SymbolTable &table) override;
 };
 
 class ReturnStmt : public Stmt {
@@ -222,6 +235,7 @@ public:
     ReturnStmt(std::shared_ptr<Expr> expr = nullptr, int line = 0, int column = 0);
     void print(int indent = 0) const override;
     void check(SymbolTable &table, int blockLevel) override;
+    void generate(CodeGenerator &generator, SymbolTable &table) override;
 };
 
 class BreakStmt : public Stmt {
@@ -229,6 +243,7 @@ public:
     BreakStmt(int line = 0, int column = 0);
     void print(int indent = 0) const override;
     void check(SymbolTable &table, int blockLevel) override;
+    void generate(CodeGenerator &generator, SymbolTable &table) override;
 };
 
 class PrintStmt : public Stmt {
@@ -239,6 +254,7 @@ public:
     void addArg(std::shared_ptr<Expr> arg);
     void print(int indent = 0) const override;
     void check(SymbolTable &table, int blockLevel) override;
+    void generate(CodeGenerator &generator, SymbolTable &table) override;
 };
 
 class ReadIntegerExpr : public Expr {
@@ -246,6 +262,7 @@ public:
     ReadIntegerExpr(int line = 0, int column = 0);
     ASTNodeType* getType() const override;
     void print(int indent) const override;
+    void generate(CodeGenerator &generator, SymbolTable &table);
 };
 
 class ReadLineExpr : public Expr {
@@ -253,6 +270,7 @@ public:
     ReadLineExpr(int line = 0, int column = 0);
     ASTNodeType* getType() const override;
     void print(int indent) const override;
+    void generate(CodeGenerator &generator, SymbolTable &table);
 };
 
 class Decl : public Node {

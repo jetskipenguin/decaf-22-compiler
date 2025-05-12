@@ -15,6 +15,10 @@ bool Expr::check(SymbolTable &table, int blockLevel) {
     return true;
 }
 
+void Expr::generate(CodeGenerator &generator, SymbolTable &table) {
+    return;
+}
+
 IntLiteral::IntLiteral(int value, int line, int column)
     : LiteralExpr(line, column), value(value) {}
 
@@ -139,6 +143,15 @@ std::string BinaryExpr::getOpAsString() {
     }
     return "";
 }
+
+// void BinaryExpr::generate(CodeGenerator &generator, SymbolTable &table) {
+//     this->left->generate(generator, table);
+//     this->right->generate(generator, table);
+
+//     Register r = generator.getNextRegister();
+    
+    
+// }
 
 bool BinaryExpr::check(SymbolTable &table, int blockLevel) {
     this->right->check(table, blockLevel);
