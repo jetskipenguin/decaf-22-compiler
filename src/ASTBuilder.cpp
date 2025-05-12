@@ -152,6 +152,7 @@ std::shared_ptr<FunctionDecl> ASTBuilder::parseFunctionDecl(
     ASTNodeType* returnType, std::shared_ptr<Identifier> id, int line, int column) {
     
     auto funcDecl = std::make_shared<FunctionDecl>(returnType, id, line, column);
+    addToCurrentScope(id->name, returnType);
     
     consume(TokenType::T_Operator, "(");
     pushScope();
@@ -710,6 +711,8 @@ std::shared_ptr<Expr> ASTBuilder::parseCall() {
         // Check if it's a function identifier
         if (auto var = std::dynamic_pointer_cast<VarExpr>(expr)) {
             auto callExpr = std::make_shared<CallExpr>(var->id, line, column);
+
+            callExpr->returnType = lookupVariable(var->id->name);
             
             // Parse arguments if any
             if (!check(TokenType::T_Operator) || currentToken().text != ")") {

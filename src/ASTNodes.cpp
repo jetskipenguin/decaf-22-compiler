@@ -184,6 +184,12 @@ bool BinaryExpr::isValidOperandForGivenTypes() {
         }
     }
 
+    if(this->op == BinaryOp::Plus) {
+        if(leftType == ASTNodeType::doubleType && ASTNodeType::intType) {
+            return false;
+        }
+    }
+
     return true;
 }
 
