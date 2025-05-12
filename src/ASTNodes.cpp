@@ -326,9 +326,11 @@ bool CallExpr::check(SymbolTable &table, int blockLevel) {
 
     if(this->args.size() != entry->params.size()) {
         std::string indentStr(this->id->column-1-id->name.size(), ' ');
+        std::string errorHighlight(this->id->name.size(), '^');
         std::cout << std::endl << "*** Error line " << this->line << "." << std::endl;
         std::cout << SourceInfo::sourceCode.at(this->line-1) << std::endl;
-        std::cout << "*** Function '" << entry->id.name << "' expects " << entry->params.size() << " but " << this->args.size() << " given" << std::endl;
+        std::cout << indentStr << errorHighlight << std::endl;
+        std::cout << "*** Function '" << entry->id.name << "' expects " << entry->params.size() << " arguments but " << this->args.size() << " given" << std::endl;
         std::cout << std::endl;
         return false;
     }
