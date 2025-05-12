@@ -183,9 +183,11 @@ public:
     std::shared_ptr<Expr> cond;
     std::shared_ptr<Stmt> thenStmt;
     std::shared_ptr<Stmt> elseStmt;
+    std::shared_ptr<Expr> elseIfCond;
+    std::shared_ptr<Stmt> elseIfStmt;
 
     IfStmt(std::shared_ptr<Expr> cond, std::shared_ptr<Stmt> thenStmt,
-           std::shared_ptr<Stmt> elseStmt = nullptr, int line = 0, int column = 0, int condLength = 0);
+           std::shared_ptr<Stmt> elseStmt = nullptr, int line = 0, int column = 0, int condLength = 0, std::shared_ptr<Stmt> elseIfStmt = nullptr, std::shared_ptr<Expr> elseIfCond = nullptr);
     void print(int indent = 0) const override;
     void check(SymbolTable &table, int blockLevel) override;
 };

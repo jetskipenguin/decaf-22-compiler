@@ -24,6 +24,14 @@ void ASTBuilder::nextToken() {
     throw std::out_of_range("Reached EOF");
 }
 
+Token ASTBuilder::peekNextToken() {
+    if (currentTokenIndex + 1 <= tokens.size()) {
+        return tokens[currentTokenIndex + 1];
+    }
+    std::cout << "Throwing exception, reached end of file" << std::endl;
+    throw std::out_of_range("Reached EOF");
+}
+
 bool ASTBuilder::match(TokenType type) {
     if (check(type)) {
         nextToken();
@@ -59,6 +67,10 @@ void ASTBuilder::consume(TokenType type, std::string character) {
         }
         nextToken();
     } else {
+        if(verbose) {
+            std::cout << "Expected " << character << " with type " << token_type_to_string(type) << " but got " << currentToken().text << " with type " << token_type_to_string(currentToken().type) << std::endl;
+        }
+
         std::cout << std::endl << "*** Error line " << currentToken().line << "." << std::endl
             << sourceCode.at(currentToken().line-1) << std::endl
             << "  ^" << std::endl
@@ -380,20 +392,34 @@ std::shared_ptr<Stmt> ASTBuilder::parseIfStmt() {
     int column = currentToken().column;
     
     consume(TokenType::T_If);
-    consume(TokenType::T_Operator, "("); // Consume '('
+    consume(TokenType::T_Operator, "(");
     
     auto condition = parseExpr();
     
-    consume(TokenType::T_Operator, ")"); // Consume ')'
+    consume(TokenType::T_Operator, ")");
     
     auto thenStmt = parseStmt();
     std::shared_ptr<Stmt> elseStmt = nullptr;
+    std::shared_ptr<Expr> elseIfCond = nullptr;
+    std::shared_ptr<Stmt> elseIfStmt = nullptr;
     
-    if (match(TokenType::T_Else)) {
+    std::string currToken = currentToken().text;
+    std::string nextToken = peekNextToken().text;
+
+    if(currToken == "else" && nextToken == "if") {
+        this->nextToken();
+        consume(TokenType::T_If, "if");
+        consume(TokenType::T_Operator, "(");
+        elseIfCond = parseExpr();
+        consume(TokenType::T_Operator, ")");
+        elseIfStmt = parseStmt();
+    }
+    else if(currToken == "else") {
         elseStmt = parseStmt();
     }
+
     int condLength = condition->column - column - 4;
-    return std::make_shared<IfStmt>(condition, thenStmt, elseStmt, line, column, condLength);
+    return std::make_shared<IfStmt>(condition, thenStmt, elseStmt, line, column, condLength, elseIfStmt, elseIfCond);
 }
 
 // WhileStmt -> 'while' '(' Expr ')' Stmt

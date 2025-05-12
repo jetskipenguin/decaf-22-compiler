@@ -443,14 +443,22 @@ void BlockStmt::print(int indent) const {
 }
 
 IfStmt::IfStmt(std::shared_ptr<Expr> cond, std::shared_ptr<Stmt> thenStmt,
-               std::shared_ptr<Stmt> elseStmt, int line, int column, int condLength)
-    : Stmt(line, column), cond(cond), thenStmt(thenStmt), elseStmt(elseStmt), condLength(condLength)  {}
+               std::shared_ptr<Stmt> elseStmt, int line, int column, int condLength,std::shared_ptr<Stmt> elseIfStmt, std::shared_ptr<Expr> elseIfCond)
+    : Stmt(line, column), cond(cond), thenStmt(thenStmt), elseStmt(elseStmt), condLength(condLength), elseIfStmt(elseIfStmt), elseIfCond(elseIfCond)   {}
 
 void IfStmt::check(SymbolTable &table, int blockLevel) {
     cond->check(table, blockLevel);
     thenStmt->check(table, blockLevel);
     if(elseStmt) {
         elseStmt->check(table, blockLevel);
+    }
+
+    if(elseIfCond) {
+        elseIfCond->check(table, blockLevel);
+    }
+
+    if(elseIfStmt) {
+        elseIfStmt->check(table, blockLevel);
     }
 
     if(cond->getType() != ASTNodeType::boolType) {
