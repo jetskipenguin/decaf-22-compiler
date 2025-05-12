@@ -147,6 +147,10 @@ bool BinaryExpr::check(SymbolTable &table, int blockLevel) {
     ASTNodeType* leftType = this->left->getType();
     ASTNodeType* rightType = this->right->getType();
 
+    if(leftType == rightType) {
+        return true;
+    }
+
     if(!isValidOperandForGivenTypes()) {
         std::string indentStr(this->column+1, ' ');
         std::cout << std::endl << "*** Error line " << this->line << "." << std::endl;
