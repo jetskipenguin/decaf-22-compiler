@@ -2,55 +2,17 @@
 #include <iostream>
 #include <string>
 
-Node::Node(int line, int column) : line(line), column(column) {}
-
-ASTNodeType* ASTNodeType::voidType = new ASTNodeType(ASTNodeType::Void);
-ASTNodeType* ASTNodeType::intType = new ASTNodeType(ASTNodeType::Int);
-ASTNodeType* ASTNodeType::doubleType = new ASTNodeType(ASTNodeType::Double);
-ASTNodeType* ASTNodeType::boolType = new ASTNodeType(ASTNodeType::Bool);
-ASTNodeType* ASTNodeType::stringType = new ASTNodeType(ASTNodeType::String);
-ASTNodeType* ASTNodeType::nullType = new ASTNodeType(ASTNodeType::Null);
-ASTNodeType* ASTNodeType::errorType = new ASTNodeType(ASTNodeType::Error);
-
-ASTNodeType::ASTNodeType(TypeKind kind, int line, int column) 
-    : Node(line, column), kind(kind) {}
-
-bool ASTNodeType::isError() const { return kind == Error; }
-bool ASTNodeType::isVoid() const { return kind == Void; }
-bool ASTNodeType::isNumeric() const { return kind == Int || kind == Double; }
-
-bool ASTNodeType::isEquivalentTo(const ASTNodeType* other) const {
-    return kind == other->kind;
-}
-
-bool ASTNodeType::isAssignableTo(const ASTNodeType* other) const {
-    if (kind == Null) return true;
-    if (kind == Error || other->kind == Error) return false;
-    return isEquivalentTo(other);
-}
-
-const char* ASTNodeType::typeName() const {
-    switch (kind) {
-        case Void: return "void";
-        case Int: return "int";
-        case Double: return "double";
-        case Bool: return "bool";
-        case String: return "string";
-        case Null: return "null";
-        case Error: return "error";
-        default: return "unknown";
-    }
-}
-
-void ASTNodeType::print(int indent) const {
-    std::cout << std::string(indent, ' ') << "Type: " << typeName() << std::endl;
-}
+std::vector<std::string> SourceInfo::sourceCode;
 
 Identifier::Identifier(const std::string& name, int line, int column)
     : Node(line, column), name(name) {}
 
 void Identifier::print(int indent) const {
     std::cout << "  " << line << std::string(indent, ' ') << "Identifier: " << name << std::endl;
+}
+
+bool Expr::check(SymbolTable &table, int blockLevel) {
+    return true;
 }
 
 IntLiteral::IntLiteral(int value, int line, int column)
@@ -119,6 +81,20 @@ ASTNodeType* VarExpr::getType() const {
     return varType; 
 }
 
+bool VarExpr::check(SymbolTable &table, int blockLevel) {
+    if(table.lookupVariable(id->name, blockLevel) == nullptr) {
+        std::string indentStr(this->id->column-1-id->name.size(), ' ');
+        std::string errorHighlight(id->name.size(), '^');
+        std::cout << std::endl << "*** Error line " << this->line << "." << std::endl;
+        std::cout << SourceInfo::sourceCode.at(this->line-1) << std::endl;
+        std::cout << indentStr << errorHighlight << std::endl;
+        std::cout << "*** No declaration found for variable '" << id->name << "'" << std::endl;
+        std::cout << std::endl;
+        return false;
+    }
+    return true;
+}
+
 void VarExpr::print(int indent) const {
     if (isArgument) {
         std::cout << "  " << line << std::string(indent, ' ') << "(actuals) FieldAccess: " << std::endl;
@@ -132,29 +108,115 @@ BinaryExpr::BinaryExpr(BinaryOp op, std::shared_ptr<Expr> left,
                       std::shared_ptr<Expr> right, int line, int column)
     : Expr(line, column), op(op), left(left), right(right) {}
 
+std::string BinaryExpr::getOpAsString() {
+    switch(this->op) {
+    case BinaryOp::And:
+        return "&&";
+    case BinaryOp::Or:
+        return "||";
+    case BinaryOp::NotEqual:
+        return "!=";
+    case BinaryOp::Equal:
+        return "==";
+    case BinaryOp::GreaterEqual:
+        return ">=";
+    case BinaryOp::Greater:
+        return ">";
+    case BinaryOp::LessEqual:
+        return "<=";
+    case BinaryOp::Less:
+        return "<";
+    case BinaryOp::Modulo:
+        return "%";
+    case BinaryOp::Divide:
+        return "/";
+    case BinaryOp::Multiply:
+        return "*";
+    case BinaryOp::Minus:
+        return "-";
+    case BinaryOp::Plus:
+        return "+";
+    }
+    return "";
+}
+
+bool BinaryExpr::check(SymbolTable &table, int blockLevel) {
+    this->right->check(table, blockLevel);
+    this->left->check(table, blockLevel);
+
+    ASTNodeType* leftType = this->left->getType();
+    ASTNodeType* rightType = this->right->getType();
+
+    if(leftType == rightType) {
+        return true;
+    }
+
+    if(!isValidOperandForGivenTypes()) {
+        std::string indentStr(this->column+1, ' ');
+        std::cout << std::endl << "*** Error line " << this->line << "." << std::endl;
+        std::cout << SourceInfo::sourceCode.at(this->line-1) << std::endl;
+        std::cout << indentStr << "^" << std::endl;
+        std::cout << "*** Incompatible operands: " << leftType->typeName() << " " << this->getOpAsString() << " " << rightType->typeName() << std::endl;
+        std::cout << std::endl;
+        return false;
+    }
+    return true;
+}
+
+bool BinaryExpr::isValidOperandForGivenTypes() {
+    ASTNodeType* leftType = this->left->getType();
+    ASTNodeType* rightType = this->right->getType();
+    
+    if(this->op == BinaryOp::Minus) {
+        if(leftType == ASTNodeType::intType && rightType == ASTNodeType::doubleType) {
+            return false;
+        }
+    }
+
+    if(this->op == BinaryOp::Divide) {
+        if(leftType == ASTNodeType::doubleType && rightType == ASTNodeType::intType) {
+            return false;
+        }
+    }
+
+    if(this->op == BinaryOp::And) {
+        if(leftType == ASTNodeType::boolType && ASTNodeType::intType) {
+            return false;
+        }
+    }
+
+    if(this->op == BinaryOp::Plus) {
+        if(leftType == ASTNodeType::doubleType && ASTNodeType::intType) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 ASTNodeType* BinaryExpr::getType() const {
     ASTNodeType* leftType = left->getType();
     ASTNodeType* rightType = right->getType();
+
+    if (op == Equal || op == NotEqual || 
+        op == Less || op == LessEqual || 
+        op == Greater || op == GreaterEqual) {
+        return ASTNodeType::boolType;
+    }
 
     if (leftType->isError() || rightType->isError()) {
         return ASTNodeType::errorType;
     }
 
     if (leftType->isNumeric() && rightType->isNumeric()) {
-        if (leftType->kind == ASTNodeType::Double || 
-            rightType->kind == ASTNodeType::Double) {
+        if (leftType->kind == TypeKind::Double || 
+            rightType->kind == TypeKind::Double) {
             return ASTNodeType::doubleType;
         }
         return ASTNodeType::intType;
     }
 
     if (op == And || op == Or) {
-        return ASTNodeType::boolType;
-    }
-
-    if (op == Equal || op == NotEqual || 
-        op == Less || op == LessEqual || 
-        op == Greater || op == GreaterEqual) {
         return ASTNodeType::boolType;
     }
 
@@ -203,6 +265,27 @@ void BinaryExpr::print(int indent) const {
 UnaryExpr::UnaryExpr(UnaryOp op, std::shared_ptr<Expr> expr, int line, int column)
     : Expr(line, column), op(op), expr(expr) {}
 
+bool UnaryExpr::check(SymbolTable &table, int blockLevel) {
+    this->expr->check(table, blockLevel);
+
+    if(this->op == UnaryOp::Not) {
+        std::shared_ptr<VarExpr> varExpr = std::dynamic_pointer_cast<VarExpr>(this->expr);
+        if(varExpr) {
+            std::shared_ptr<IdentifierEntry> varInfo = table.lookupVariable(varExpr->id->name, 2);
+
+            if(varInfo->type == ASTNodeType::intType) {
+                std::string indentStr(this->column+1, ' ');
+                std::cout << std::endl << "*** Error line " << this->line << "." << std::endl;
+                std::cout << SourceInfo::sourceCode.at(this->line-1) << std::endl;
+                std::cout << indentStr << "^" << std::endl;
+                std::cout << "*** Incompatible operand: ! int" << std::endl; 
+                std::cout << std::endl;
+                return false;
+            }
+        }
+    }
+}
+
 ASTNodeType* UnaryExpr::getType() const {
     ASTNodeType* exprType = expr->getType();
     if (exprType->isError()) {
@@ -213,7 +296,7 @@ ASTNodeType* UnaryExpr::getType() const {
         case Minus:
             return exprType->isNumeric() ? exprType : ASTNodeType::errorType;
         case Not:
-            return (exprType->kind == ASTNodeType::Bool) ? 
+            return (exprType->kind == TypeKind::Bool) ? 
                    ASTNodeType::boolType : ASTNodeType::errorType;
         default:
             return ASTNodeType::errorType;
@@ -229,6 +312,47 @@ void UnaryExpr::print(int indent) const {
 
 CallExpr::CallExpr(std::shared_ptr<Identifier> id, int line, int column)
     : Expr(line, column), id(id), returnType(nullptr) {}
+
+
+bool CallExpr::check(SymbolTable &table, int blockLevel) {
+    std::shared_ptr<FunctionEntry> entry = table.lookupFunction(id->name, 1);
+    if(entry == nullptr) {
+        std::string indentStr(this->id->column-1-id->name.size(), ' ');
+        std::cout << std::endl << "*** Error line " << this->line << "." << std::endl;
+        std::cout << SourceInfo::sourceCode.at(this->line-1) << std::endl;
+        std::cout << "*** No declaration for Function '" << id->name << "' found" << std::endl << std::endl;
+        return false;
+    }
+
+    if(this->args.size() != entry->params.size()) {
+        std::string indentStr(this->id->column-1-id->name.size(), ' ');
+        std::string errorHighlight(this->id->name.size(), '^');
+        std::cout << std::endl << "*** Error line " << this->line << "." << std::endl;
+        std::cout << SourceInfo::sourceCode.at(this->line-1) << std::endl;
+        std::cout << indentStr << errorHighlight << std::endl;
+        std::cout << "*** Function '" << entry->id.name << "' expects " << entry->params.size() << " arguments but " << this->args.size() << " given" << std::endl;
+        std::cout << std::endl;
+        return false;
+    }
+
+    for(auto &arg : this->args) {
+        arg->check(table, blockLevel);
+    }
+
+    for(int i = 0; i < this->args.size(); i++) {
+        if(this->args.at(i)->getType() != entry->params.at(i)) {
+            std::string indentStr(this->args.at(i)->column-1, ' ');
+            std::cout << std::endl << "*** Error line " << this->line << "." << std::endl;
+            std::cout << SourceInfo::sourceCode.at(this->line-1) << std::endl;
+            std::cout << indentStr << "^" << std::endl;
+            std::cout << "*** Incompatible argument " << i + 1 << ": " << this->args.at(i)->getType()->typeName() << " given, " << entry->params.at(i)->typeName() << " expected" << std::endl;
+            std::cout << std::endl;
+            return false;
+        }
+    }
+
+    return true;
+}
 
 void CallExpr::addArg(std::shared_ptr<Expr> arg) {
     arg->setIsArgument(true);
@@ -255,6 +379,28 @@ AssignExpr::AssignExpr(std::shared_ptr<Expr> left,
                       std::shared_ptr<Expr> right, int line, int column)
     : Expr(line, column), left(left), right(right) {}
 
+bool AssignExpr::check(SymbolTable &table, int blockLevel) {
+
+    if(!this->right->check(table, blockLevel)) {
+        return false;
+    }
+
+    ASTNodeType* rightType = this->right->getType();
+    ASTNodeType* leftType = this->left->getType();
+
+    if(!leftType->isAssignableTo(rightType)) {
+        std::string indentStr(this->column+1, ' ');
+        std::cout << std::endl << "*** Error line " << this->line << "." << std::endl;
+        std::cout << SourceInfo::sourceCode.at(this->line-1) << std::endl;
+        std::cout << indentStr << "^" << std::endl;
+        std::cout << "*** Incompatible operands: " << this->left->getType()->typeName() << " = " << this->right->getType()->typeName() << std::endl;
+        std::cout << std::endl;
+        return false;
+    }
+
+    return true;
+}
+
 ASTNodeType* AssignExpr::getType() const { 
     return left->getType(); 
 }
@@ -269,11 +415,21 @@ void AssignExpr::print(int indent) const {
 ExprStmt::ExprStmt(std::shared_ptr<Expr> expr, int line, int column)
     : Stmt(line, column), expr(expr) {}
 
+void ExprStmt::check(SymbolTable &table, int blockLevel) {
+    expr->check(table, blockLevel);
+}
+
 void ExprStmt::print(int indent) const {
     expr->print(indent);
 }
 
 BlockStmt::BlockStmt(int line, int column) : Stmt(line, column) {}
+
+void BlockStmt::check(SymbolTable &table, int blockLevel) {
+    for(auto &stmt : this->stmts) {
+        stmt->check(table, blockLevel);
+    }
+}
 
 void BlockStmt::addStmt(std::shared_ptr<Stmt> stmt) {
     stmts.push_back(stmt);
@@ -287,8 +443,34 @@ void BlockStmt::print(int indent) const {
 }
 
 IfStmt::IfStmt(std::shared_ptr<Expr> cond, std::shared_ptr<Stmt> thenStmt,
-               std::shared_ptr<Stmt> elseStmt, int line, int column)
-    : Stmt(line, column), cond(cond), thenStmt(thenStmt), elseStmt(elseStmt) {}
+               std::shared_ptr<Stmt> elseStmt, int line, int column, int condLength,std::shared_ptr<Stmt> elseIfStmt, std::shared_ptr<Expr> elseIfCond)
+    : Stmt(line, column), cond(cond), thenStmt(thenStmt), elseStmt(elseStmt), condLength(condLength), elseIfStmt(elseIfStmt), elseIfCond(elseIfCond)   {}
+
+void IfStmt::check(SymbolTable &table, int blockLevel) {
+    cond->check(table, blockLevel);
+    thenStmt->check(table, blockLevel);
+    if(elseStmt) {
+        elseStmt->check(table, blockLevel);
+    }
+
+    if(elseIfCond) {
+        elseIfCond->check(table, blockLevel);
+    }
+
+    if(elseIfStmt) {
+        elseIfStmt->check(table, blockLevel);
+    }
+
+    if(cond->getType() != ASTNodeType::boolType) {
+        std::string indentStr(this->cond->column-1-condLength, ' ');
+        std::string errorHighlight(condLength, '^');
+        std::cout << std::endl << "*** Error line " << this->line << "." << std::endl;
+        std::cout << SourceInfo::sourceCode.at(this->line-1) << std::endl;
+        std::cout << indentStr << errorHighlight << std::endl; // TODO: make the length of the error highlight variable
+        std::cout << "*** Test expression must have boolean type" << std::endl;
+        std::cout << std::endl;
+    }
+}
 
 void IfStmt::print(int indent) const {
     std::cout << std::string(indent, ' ') << "IfStmt: " << std::endl;
@@ -306,6 +488,11 @@ WhileStmt::WhileStmt(std::shared_ptr<Expr> cond,
                      std::shared_ptr<Stmt> body, int line, int column)
     : Stmt(line, column), cond(cond), body(body) {}
 
+void WhileStmt::check(SymbolTable &table, int blockLevel) {
+    this->cond->check(table, blockLevel);
+    this->body->check(table, blockLevel+1);
+}
+
 void WhileStmt::print(int indent) const {
     std::cout << std::string(indent, ' ') << "WhileStmt: " << std::endl;
     std::cout << std::string(indent, ' ') << "  Condition: " << std::endl;
@@ -319,6 +506,13 @@ ForStmt::ForStmt(std::shared_ptr<Expr> init, std::shared_ptr<Expr> cond,
                  int line, int column)
     : Stmt(line, column), init(init), cond(cond), 
       update(update), body(body) {}
+
+void ForStmt::check(SymbolTable &table, int blockLevel) {
+    init->check(table, blockLevel);
+    cond->check(table, blockLevel);
+    update->check(table, blockLevel);
+    body->check(table, blockLevel);
+}
 
 void ForStmt::print(int indent) const {
     std::cout << std::string(indent, ' ') << "ForStmt: " << std::endl;
@@ -341,6 +535,10 @@ void ForStmt::print(int indent) const {
 ReturnStmt::ReturnStmt(std::shared_ptr<Expr> expr, int line, int column)
     : Stmt(line, column), expr(expr) {}
 
+void ReturnStmt::check(SymbolTable &table, int blockLevel) {
+    this->expr->check(table, blockLevel);
+}
+
 void ReturnStmt::print(int indent) const {
     std::cout << "  " << line << std::string(indent, ' ') << "ReturnStmt: " << std::endl;
     if (expr) {
@@ -350,11 +548,43 @@ void ReturnStmt::print(int indent) const {
 
 BreakStmt::BreakStmt(int line, int column) : Stmt(line, column) {}
 
+void BreakStmt::check(SymbolTable &table, int blockLevel) {
+    if(blockLevel <= 2) {
+        std::string indentStr(this->column-1, ' ');
+        std::cout << std::endl << "*** Error line " << this->line << "." << std::endl;
+        std::cout << SourceInfo::sourceCode.at(this->line-1) << std::endl;
+        std::cout << indentStr << "^^^^^" << std::endl;
+        std::cout << "*** break is only allowed inside a loop" << std::endl;
+        std::cout << std::endl;
+    }
+
+    return;
+}
+
 void BreakStmt::print(int indent) const {
     std::cout << std::string(indent, ' ') << "BreakStmt" << std::endl;
 }
 
 PrintStmt::PrintStmt(int line, int column) : Stmt(line, column) {}
+
+void PrintStmt::check(SymbolTable &table, int blockLevel) {
+    for (auto &expr : this->args) {
+        expr->check(table, blockLevel);
+    }
+
+    int argNum = 0;
+    for (auto &arg : this->args) {
+        argNum++;
+        if(arg->getType() != ASTNodeType::boolType && arg->getType() != ASTNodeType::stringType && arg->getType() != ASTNodeType::intType) {
+            std::string indentStr(arg->column-1, ' ');
+            std::cout << std::endl << "*** Error line " << this->line << "." << std::endl;
+            std::cout << SourceInfo::sourceCode.at(this->line-1) << std::endl;
+            std::cout << indentStr << "^" << std::endl;
+            std::cout << "*** Incompatible argument " << argNum << ": " << arg->getType()->typeName() << " given, int/bool/string expected" << std::endl;
+            std::cout << std::endl;
+        }
+    }
+}
 
 void PrintStmt::addArg(std::shared_ptr<Expr> arg) {
     arg->setIsArgument(true);
@@ -378,14 +608,32 @@ void ReadIntegerExpr::print(int indent) const {
     std::cout << "  " << line << std::string(indent, ' ') << "ReadIntegerExpr: " << std::endl;
 }
 
+ReadLineExpr::ReadLineExpr(int line, int column) : Expr(line, column) {}
+
+ASTNodeType* ReadLineExpr::getType() const { 
+    return ASTNodeType::stringType; 
+}
+
+void ReadLineExpr::print(int indent) const {
+    std::cout << "  " << line << std::string(indent, ' ') << "ReadLineExpr: " << std::endl;
+}
+
 VarDecl::VarDecl(ASTNodeType* type, std::shared_ptr<Identifier> id,
                  std::shared_ptr<Expr> init, int line, int column)
-    : Decl(line, column), type(type), id(id), init(init) {}
+    : Decl(line, column), type(type), init(init) {
+        identifier = id;
+    }
+
+void VarDecl::check(SymbolTable &table, int blockLevel) {
+    if(this->init != nullptr) {
+        this->init->check(table, blockLevel);
+    }
+}
 
 void VarDecl::print(int indent) const {
     std::cout << "  " << line << std::string(indent, ' ') << "VarDecl: " << std::endl;
     type->print(indent + 6);
-    id->print(indent + 3);
+    identifier->print(indent + 3);
     if (init) {
         std::cout << "  " << line << std::string(indent-3, ' ') << "   Init: " << std::endl;
         init->print(indent + 4);
@@ -393,7 +641,13 @@ void VarDecl::print(int indent) const {
 }
 
 VarDeclStmt::VarDeclStmt(std::shared_ptr<VarDecl> varDecl, int line, int column)
-    : Stmt(line, column), varDecl(varDecl) {}
+    : Stmt(line, column), varDecl(varDecl) {
+        varDecl->init = nullptr;
+    }
+
+void VarDeclStmt::check(SymbolTable &table, int blockLevel) {
+    this->varDecl->check(table, blockLevel);
+}
 
 void VarDeclStmt::print(int indent) const {
     varDecl->print(indent);
@@ -401,7 +655,18 @@ void VarDeclStmt::print(int indent) const {
 
 FunctionDecl::FunctionDecl(ASTNodeType* returnType, 
                           std::shared_ptr<Identifier> id, int line, int column)
-    : Decl(line, column), returnType(returnType), id(id) {}
+    : Decl(line, column), returnType(returnType) {
+        identifier = id;
+    }
+
+void FunctionDecl::check(SymbolTable &table, int blockLevel) {
+
+    for(auto &formal : this->formals) {
+        formal->check(table, blockLevel);
+    }
+
+    this->body->check(table, blockLevel);
+}
 
 void FunctionDecl::addFormal(std::shared_ptr<VarDecl> formal) {
     formals.push_back(formal);
@@ -415,13 +680,13 @@ void FunctionDecl::print(int indent) const {
     std::cout << "  " << line << std::string(indent, ' ') <<  "FnDecl: " << std::endl;
     std::cout << std::string(indent+6, ' ') << "(return type) Type: " 
               << returnType->typeName() << std::endl;
-    id->print(indent+3);
+    identifier->print(indent+3);
     
     for (const auto& formal : formals) {
         std::cout << "  " << formal->line  << std::string(indent+3, ' ')
                   << "(formals) VarDecl: " << std::endl;
         formal->type->print(indent + 9);
-        formal->id->print(indent + 6);
+        formal->identifier->print(indent + 6);
     }
 
     if (body) {

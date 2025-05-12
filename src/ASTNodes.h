@@ -5,19 +5,19 @@
 #include <memory>
 #include <iostream>
 #include "Token.h"
+#include "SymbolTable.h"
 
 // Forward declarations
 class ASTNodeType;
 class Identifier;
 
-class Node {
-public:
-    int line;
-    int column;
+class SourceInfo {
+    public:
+        static std::vector<std::string> sourceCode; // For logging purposes only
 
-    Node(int line = 0, int column = 0);
-    virtual ~Node() = default;
-    virtual void print(int indent = 0) const = 0;
+        SourceInfo() {
+
+        };
 };
 
 class Expr : public Node {
@@ -28,32 +28,7 @@ public:
     virtual ASTNodeType* getType() const = 0;
     void setIsArgument(bool isArg) { isArgument = isArg; }
     bool getIsArgument() const { return isArgument; }
-};
-
-class ASTNodeType : public Node {
-public:
-    enum TypeKind {
-        Void, Int, Double, Bool, String, Null, Error
-    };
-
-    TypeKind kind;
-
-    ASTNodeType(TypeKind kind, int line = 0, int column = 0);
-    bool isError() const;
-    bool isVoid() const;
-    bool isNumeric() const;
-    bool isEquivalentTo(const ASTNodeType* other) const;
-    bool isAssignableTo(const ASTNodeType* other) const;
-    const char* typeName() const;  // Add this line
-    void print(int indent = 0) const override;
-
-    static ASTNodeType* voidType;
-    static ASTNodeType* intType;
-    static ASTNodeType* doubleType;
-    static ASTNodeType* boolType;
-    static ASTNodeType* stringType;
-    static ASTNodeType* nullType;
-    static ASTNodeType* errorType;
+    virtual bool check(SymbolTable &table, int blockLevel);
 };
 
 class Identifier : public Node {
@@ -114,6 +89,7 @@ public:
 
     VarExpr(std::shared_ptr<Identifier> id, int line = 0, int column = 0, ASTNodeType* type = ASTNodeType::errorType);
     ASTNodeType* getType() const override;
+    bool check(SymbolTable &table, int blockLevel) override;
     void print(int indent = 0) const override;
 };
 
@@ -133,6 +109,9 @@ public:
               int line = 0, int column = 0);
     ASTNodeType* getType() const override;
     void print(int indent = 0) const override;
+    std::string getOpAsString();
+    bool check(SymbolTable &table, int blockLevel) override;
+    bool isValidOperandForGivenTypes();
 };
 
 class UnaryExpr : public Expr {
@@ -145,6 +124,7 @@ public:
     UnaryExpr(UnaryOp op, std::shared_ptr<Expr> expr, int line = 0, int column = 0);
     ASTNodeType* getType() const override;
     void print(int indent = 0) const override;
+    bool check(SymbolTable &table, int blockLevel) override;
 };
 
 class CallExpr : public Expr {
@@ -157,6 +137,7 @@ public:
     void addArg(std::shared_ptr<Expr> arg);
     ASTNodeType* getType() const override;
     void print(int indent = 0) const override;
+    bool check(SymbolTable &table, int blockLevel) override;
 };
 
 class AssignExpr : public Expr {
@@ -168,11 +149,13 @@ public:
               int line = 0, int column = 0);
     ASTNodeType* getType() const override;
     void print(int indent = 0) const override;
+    bool check(SymbolTable &table, int blockLevel) override;
 };
 
 class Stmt : public Node {
 public:
     using Node::Node;
+    virtual void check(SymbolTable &table, int blockLevel) = 0;
 };
 
 class ExprStmt : public Stmt {
@@ -181,6 +164,7 @@ public:
 
     ExprStmt(std::shared_ptr<Expr> expr, int line = 0, int column = 0);
     void print(int indent = 0) const override;
+    void check(SymbolTable &table, int blockLevel) override;
 };
 
 class BlockStmt : public Stmt {
@@ -190,17 +174,22 @@ public:
     BlockStmt(int line = 0, int column = 0);
     void addStmt(std::shared_ptr<Stmt> stmt);
     void print(int indent = 0) const override;
+    void check(SymbolTable &table, int blockLevel) override;
 };
 
 class IfStmt : public Stmt {
 public:
+    int condLength;
     std::shared_ptr<Expr> cond;
     std::shared_ptr<Stmt> thenStmt;
     std::shared_ptr<Stmt> elseStmt;
+    std::shared_ptr<Expr> elseIfCond;
+    std::shared_ptr<Stmt> elseIfStmt;
 
     IfStmt(std::shared_ptr<Expr> cond, std::shared_ptr<Stmt> thenStmt,
-           std::shared_ptr<Stmt> elseStmt = nullptr, int line = 0, int column = 0);
+           std::shared_ptr<Stmt> elseStmt = nullptr, int line = 0, int column = 0, int condLength = 0, std::shared_ptr<Stmt> elseIfStmt = nullptr, std::shared_ptr<Expr> elseIfCond = nullptr);
     void print(int indent = 0) const override;
+    void check(SymbolTable &table, int blockLevel) override;
 };
 
 class WhileStmt : public Stmt {
@@ -211,6 +200,7 @@ public:
     WhileStmt(std::shared_ptr<Expr> cond, std::shared_ptr<Stmt> body,
              int line = 0, int column = 0);
     void print(int indent = 0) const override;
+    void check(SymbolTable &table, int blockLevel) override;
 };
 
 class ForStmt : public Stmt {
@@ -224,6 +214,7 @@ public:
             std::shared_ptr<Expr> update, std::shared_ptr<Stmt> body,
             int line = 0, int column = 0);
     void print(int indent = 0) const override;
+    void check(SymbolTable &table, int blockLevel) override;
 };
 
 class ReturnStmt : public Stmt {
@@ -232,12 +223,14 @@ public:
 
     ReturnStmt(std::shared_ptr<Expr> expr = nullptr, int line = 0, int column = 0);
     void print(int indent = 0) const override;
+    void check(SymbolTable &table, int blockLevel) override;
 };
 
 class BreakStmt : public Stmt {
 public:
     BreakStmt(int line = 0, int column = 0);
     void print(int indent = 0) const override;
+    void check(SymbolTable &table, int blockLevel) override;
 };
 
 class PrintStmt : public Stmt {
@@ -247,6 +240,7 @@ public:
     PrintStmt(int line = 0, int column = 0);
     void addArg(std::shared_ptr<Expr> arg);
     void print(int indent = 0) const override;
+    void check(SymbolTable &table, int blockLevel) override;
 };
 
 class ReadIntegerExpr : public Expr {
@@ -256,35 +250,45 @@ public:
     void print(int indent) const override;
 };
 
+class ReadLineExpr : public Expr {
+public:
+    ReadLineExpr(int line = 0, int column = 0);
+    ASTNodeType* getType() const override;
+    void print(int indent) const override;
+};
+
 class Decl : public Node {
 public:
     using Node::Node;
+    std::shared_ptr<Identifier> identifier;
+    virtual void check(SymbolTable &table, int blockLevel) = 0;
 };
 
 // Var declaration that includes assignment
 class VarDecl : public Decl {
 public:
     ASTNodeType* type;
-    std::shared_ptr<Identifier> id;
     std::shared_ptr<Expr> init;
 
     VarDecl(ASTNodeType* type, std::shared_ptr<Identifier> id,
             std::shared_ptr<Expr> init = nullptr, int line = 0, int column = 0);
     void print(int indent = 0) const override;
+    void check(SymbolTable &table, int blockLevel) override;
 };
 
 // Var declaration that doesn't include assignment
+// TODO: get rid of this type and just use a VarDecl with init set to null
 class VarDeclStmt : public Stmt {
 public:
     std::shared_ptr<VarDecl> varDecl;
     VarDeclStmt(std::shared_ptr<VarDecl> varDecl, int line = 0, int column = 0);
     void print(int indent = 0) const override;
+    void check(SymbolTable &table, int blockLevel) override;
 };
 
 class FunctionDecl : public Decl {
 public:
     ASTNodeType* returnType;
-    std::shared_ptr<Identifier> id;
     std::vector<std::shared_ptr<VarDecl>> formals;
     std::shared_ptr<BlockStmt> body;
 
@@ -293,6 +297,7 @@ public:
     void addFormal(std::shared_ptr<VarDecl> formal);
     void setBody(std::shared_ptr<BlockStmt> functionBody);
     void print(int indent = 0) const override;
+    void check(SymbolTable &table, int blockLevel) override;
 };
 
 class ASTRootNode : public Node {

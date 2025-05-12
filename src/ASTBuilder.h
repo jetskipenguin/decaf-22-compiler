@@ -38,6 +38,7 @@ private:
     // Token handling helpers
     Token currentToken() const;
     void nextToken();
+    Token peekNextToken();
     bool match(TokenType type);
     bool check(TokenType type) const;
     void consume(TokenType type);
@@ -79,6 +80,8 @@ public:
         this->tokens = tokens;
         this->sourceCode = sourceCode;
         this->verbose = false;
+        SourceInfo info;
+        info.sourceCode = sourceCode;
     }
 
     explicit ASTBuilder(const std::vector<Token>& tokens, const std::vector<std::string>& sourceCode, bool verbose) {
@@ -86,6 +89,8 @@ public:
         this->tokens = tokens;
         this->sourceCode = sourceCode;
         this->verbose = verbose;
+        SourceInfo info;
+        info.sourceCode = sourceCode;
     }
 
     std::shared_ptr<ASTRootNode> buildAST();

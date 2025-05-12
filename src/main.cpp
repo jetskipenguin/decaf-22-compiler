@@ -8,6 +8,7 @@
 #include <cstring>
 
 #include "ASTBuilder.h"
+#include "semanticAnalyzer.h"
 
 #define MAX_IDENTIFIER_LENGTH 31
 
@@ -124,7 +125,26 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
-    ast->print(0);
-        
+    // ast->print(0);
+
+    analyzeAST(ast, false);
+    
+    bool mainPresent = false;
+
+    for (const auto& decl : ast->decls) {
+        std::shared_ptr<FunctionDecl> functionDecl = std::dynamic_pointer_cast<FunctionDecl>(decl);
+        if(functionDecl) {
+            if(functionDecl->identifier->name == "main") {
+                mainPresent = true;
+            }
+        }
+    }
+
+    if(!mainPresent) {
+        std::cout << std::endl;
+        std::cout << "*** Error." << std::endl;
+        std::cout << "*** Linker: function 'main' not defined" << std::endl << std::endl;
+    }
+
     return 0;
 }

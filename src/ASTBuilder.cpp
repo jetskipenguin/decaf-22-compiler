@@ -24,6 +24,14 @@ void ASTBuilder::nextToken() {
     throw std::out_of_range("Reached EOF");
 }
 
+Token ASTBuilder::peekNextToken() {
+    if (currentTokenIndex + 1 <= tokens.size()) {
+        return tokens[currentTokenIndex + 1];
+    }
+    std::cout << "Throwing exception, reached end of file" << std::endl;
+    throw std::out_of_range("Reached EOF");
+}
+
 bool ASTBuilder::match(TokenType type) {
     if (check(type)) {
         nextToken();
@@ -59,6 +67,10 @@ void ASTBuilder::consume(TokenType type, std::string character) {
         }
         nextToken();
     } else {
+        if(verbose) {
+            std::cout << "Expected " << character << " with type " << token_type_to_string(type) << " but got " << currentToken().text << " with type " << token_type_to_string(currentToken().type) << std::endl;
+        }
+
         std::cout << std::endl << "*** Error line " << currentToken().line << "." << std::endl
             << sourceCode.at(currentToken().line-1) << std::endl
             << "  ^" << std::endl
@@ -151,6 +163,7 @@ std::shared_ptr<FunctionDecl> ASTBuilder::parseFunctionDecl(
     ASTNodeType* returnType, std::shared_ptr<Identifier> id, int line, int column) {
     
     auto funcDecl = std::make_shared<FunctionDecl>(returnType, id, line, column);
+    addToCurrentScope(id->name, returnType);
     
     consume(TokenType::T_Operator, "(");
     pushScope();
@@ -365,6 +378,7 @@ std::shared_ptr<Stmt> ASTBuilder::parseStmt() {
         auto varDecl = parseVarDecl();
         if (!varDecl) return nullptr;
         
+        addToCurrentScope(varDecl->identifier->name, varDecl->type);
         return std::make_shared<VarDeclStmt>(varDecl, varDecl->line, varDecl->column);
     }
     
@@ -378,20 +392,34 @@ std::shared_ptr<Stmt> ASTBuilder::parseIfStmt() {
     int column = currentToken().column;
     
     consume(TokenType::T_If);
-    consume(TokenType::T_Operator, "("); // Consume '('
+    consume(TokenType::T_Operator, "(");
     
     auto condition = parseExpr();
     
-    consume(TokenType::T_Operator, ")"); // Consume ')'
+    consume(TokenType::T_Operator, ")");
     
     auto thenStmt = parseStmt();
     std::shared_ptr<Stmt> elseStmt = nullptr;
+    std::shared_ptr<Expr> elseIfCond = nullptr;
+    std::shared_ptr<Stmt> elseIfStmt = nullptr;
     
-    if (match(TokenType::T_Else)) {
+    std::string currToken = currentToken().text;
+    std::string nextToken = peekNextToken().text;
+
+    if(currToken == "else" && nextToken == "if") {
+        this->nextToken();
+        consume(TokenType::T_If, "if");
+        consume(TokenType::T_Operator, "(");
+        elseIfCond = parseExpr();
+        consume(TokenType::T_Operator, ")");
+        elseIfStmt = parseStmt();
+    }
+    else if(currToken == "else") {
         elseStmt = parseStmt();
     }
-    
-    return std::make_shared<IfStmt>(condition, thenStmt, elseStmt, line, column);
+
+    int condLength = condition->column - column - 4;
+    return std::make_shared<IfStmt>(condition, thenStmt, elseStmt, line, column, condLength, elseIfStmt, elseIfCond);
 }
 
 // WhileStmt -> 'while' '(' Expr ')' Stmt
@@ -708,6 +736,8 @@ std::shared_ptr<Expr> ASTBuilder::parseCall() {
         // Check if it's a function identifier
         if (auto var = std::dynamic_pointer_cast<VarExpr>(expr)) {
             auto callExpr = std::make_shared<CallExpr>(var->id, line, column);
+
+            callExpr->returnType = lookupVariable(var->id->name);
             
             // Parse arguments if any
             if (!check(TokenType::T_Operator) || currentToken().text != ")") {
@@ -790,17 +820,28 @@ std::shared_ptr<Expr> ASTBuilder::parsePrimary() {
     if (check(TokenType::T_Identifier)) {
         std::string name = currentToken().text;
         consume(TokenType::T_Identifier);
+        int line = currentToken().line;
+        int column = currentToken().column;
         auto id = std::make_shared<Identifier>(name, line, column);
         return std::make_shared<VarExpr>(id, line, column, lookupVariable(name));
     }
 
     if (check(TokenType::T_ReadInteger)) {
-        int line = currentToken().line;
-        int column = currentToken().column;
         consume(TokenType::T_ReadInteger);
         consume(TokenType::T_Operator, "(");
         consume(TokenType::T_Operator, ")");
+        int line = currentToken().line;
+        int column = currentToken().column;
         return std::make_shared<ReadIntegerExpr>(line, column);
+    }
+
+    if (check(TokenType::T_ReadLine)) {
+        consume(TokenType::T_ReadLine);
+        consume(TokenType::T_Operator, "(");
+        consume(TokenType::T_Operator, ")");
+        int line = currentToken().line;
+        int column = currentToken().column;
+        return std::make_shared<ReadLineExpr>(line, column);
     }
     
     // Remove white space

@@ -19,6 +19,7 @@ enum class TokenType {
     T_While,
     T_If,
     T_Else,
+    T_ElseIf,
     T_Return,
     T_Break,
     T_Or,
