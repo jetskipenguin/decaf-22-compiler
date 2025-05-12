@@ -482,7 +482,7 @@ WhileStmt::WhileStmt(std::shared_ptr<Expr> cond,
 
 void WhileStmt::check(SymbolTable &table, int blockLevel) {
     this->cond->check(table, blockLevel);
-    this->body->check(table, blockLevel);
+    this->body->check(table, blockLevel+1);
 }
 
 void WhileStmt::print(int indent) const {
@@ -541,6 +541,15 @@ void ReturnStmt::print(int indent) const {
 BreakStmt::BreakStmt(int line, int column) : Stmt(line, column) {}
 
 void BreakStmt::check(SymbolTable &table, int blockLevel) {
+    if(blockLevel <= 2) {
+        std::string indentStr(this->column-1, ' ');
+        std::cout << std::endl << "*** Error line " << this->line << "." << std::endl;
+        std::cout << SourceInfo::sourceCode.at(this->line-1) << std::endl;
+        std::cout << indentStr << "^^^^^" << std::endl;
+        std::cout << "*** break is only allowed inside a loop" << std::endl;
+        std::cout << std::endl;
+    }
+
     return;
 }
 
