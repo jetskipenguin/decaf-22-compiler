@@ -7,20 +7,13 @@ void analyzeAST(std::shared_ptr<ASTRootNode> &rootNode, bool verbose) {
 
     for (const auto& decl : rootNode->decls) {
         
-        try {
-            table.installVariable(decl->identifier->name, 1);
-        }
-        catch(std::invalid_argument e) {
-             std::cout << "Error: Identifier " << decl->identifier->name << " cannot be used more than once" << std::endl;
-        }
-
         // Check if global variable, then record in 
         std::shared_ptr<VarDecl> varDecl = std::dynamic_pointer_cast<VarDecl>(decl);
         if(varDecl) {
             if(verbose) {
                 std::cout << "Analyzing VarDecl: " << varDecl->identifier->name << std::endl;
             }
-
+            table.installVariable(varDecl->identifier->name, 1);
             std::shared_ptr<IdentifierEntry> entry = table.lookupVariable(varDecl->identifier->name, 1);
             entry->type = varDecl->type;
             varDecl->check(table, 1);
@@ -32,8 +25,8 @@ void analyzeAST(std::shared_ptr<ASTRootNode> &rootNode, bool verbose) {
             if(verbose) {
                 std::cout << "Analyzing FunctionDecl: " << functionDecl->identifier->name << std::endl;
             }
-
-            std::shared_ptr<IdentifierEntry> entry = table.lookupVariable(functionDecl->identifier->name, 1);
+            table.installFunction(functionDecl->identifier->name, 1);
+            std::shared_ptr<IdentifierEntry> entry = table.lookupFunction(functionDecl->identifier->name, 1);
             entry->type = functionDecl->returnType;
             
             if(verbose) {

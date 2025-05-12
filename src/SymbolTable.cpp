@@ -34,7 +34,7 @@ void SymbolTable::installVariable(std::string symbolName, int blockLevel) {
 void SymbolTable::installFunction(std::string symbolName, int blockLevel) {
 
     if(this->verbose) {
-        std::cout << "Installed symbol: " << symbolName << " at blockLevel: " << blockLevel << std::endl;
+        std::cout << "Installed function symbol: " << symbolName << " at blockLevel: " << blockLevel << std::endl;
     }
     
     IdentifierEntry entryToAdd;
