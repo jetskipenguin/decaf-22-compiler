@@ -8,6 +8,11 @@ CodeGenerator::CodeGenerator() {
         this->registers.push_back(reg);
         this->availableRegisters.push_back(reg);
     }
+
+    // Standard decaf preamble
+    this->instructions.push_back(".text");
+    this->instructions.push_back(".align 2");
+    this->instructions.push_back(".globl main");
 }
 
 void CodeGenerator::emit(Instruction instruction) {
