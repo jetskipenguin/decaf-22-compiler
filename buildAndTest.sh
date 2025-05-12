@@ -35,10 +35,31 @@ for frag_file in samples/scanner/*.frag; do
     fi
 done
 
-# Run syntax analyzer tests
-for frag_file in samples/syntax_analyzer/*.decaf; do
+# # Run syntax analyzer tests
+# for frag_file in samples/syntax_analyzer/*.decaf; do
+#     base_name=$(basename "$frag_file" .decaf)
+#     out_file="samples/syntax_analyzer/${base_name}.out"
+    
+#     echo "Testing $frag_file..."
+    
+#     # Run the program and capture output
+#     ./workdir/decaf-22-compiler "$frag_file" > "temp.out"
+    
+#     # Compare with expected output
+#     if diff -w "temp.out" "$out_file" > /dev/null; then
+#         echo "✓ Test passed: $base_name"
+#     else
+#         echo "✗ Test failed: $base_name"
+#         echo "Differences found:"
+#         diff -w "temp.out" "$out_file"
+#         failed_tests+=("$frag_file")
+#     fi
+# done
+
+# Run semantic analyzer
+for frag_file in samples/semantic_analyzer/*.decaf; do
     base_name=$(basename "$frag_file" .decaf)
-    out_file="samples/syntax_analyzer/${base_name}.out"
+    out_file="samples/semantic_analyzer/${base_name}.out"
     
     echo "Testing $frag_file..."
     
