@@ -551,8 +551,21 @@ void BreakStmt::print(int indent) const {
 PrintStmt::PrintStmt(int line, int column) : Stmt(line, column) {}
 
 void PrintStmt::check(SymbolTable &table, int blockLevel) {
-    for( auto &expr : this->args) {
+    for (auto &expr : this->args) {
         expr->check(table, blockLevel);
+    }
+
+    int argNum = 0;
+    for (auto &arg : this->args) {
+        argNum++;
+        if(arg->getType() != ASTNodeType::boolType && arg->getType() != ASTNodeType::stringType && arg->getType() != ASTNodeType::intType) {
+            std::string indentStr(arg->column-1, ' ');
+            std::cout << std::endl << "*** Error line " << this->line << "." << std::endl;
+            std::cout << SourceInfo::sourceCode.at(this->line-1) << std::endl;
+            std::cout << indentStr << "^" << std::endl;
+            std::cout << "*** Incompatible argument " << argNum << ": " << arg->getType()->typeName() << " given, int/bool/string expected" << std::endl;
+            std::cout << std::endl;
+        }
     }
 }
 
