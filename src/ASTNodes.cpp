@@ -317,8 +317,6 @@ bool CallExpr::check(SymbolTable &table, int blockLevel) {
         return false;
     }
 
-
-
     if(this->args.size() != entry->params.size()) {
         std::string indentStr(this->id->column-1-id->name.size(), ' ');
         std::cout << "*** Error line " << this->line << "." << std::endl;
@@ -329,9 +327,17 @@ bool CallExpr::check(SymbolTable &table, int blockLevel) {
     }
 
 
-    // for(auto &arg : this->args) {
-        
-    // }   
+    for(int i = 0; i < this->args.size(); i++) {
+        if(this->args.at(i)->getType() != entry->params.at(i)) {
+            std::string indentStr(this->args.at(i)->column-1, ' ');
+            std::cout << "*** Error line " << this->line << "." << std::endl;
+            std::cout << SourceInfo::sourceCode.at(this->line-1) << std::endl;
+            std::cout << indentStr << "^" << std::endl;
+            std::cout << "*** Incompatible argument " << i + 1 << ": " << this->args.at(i)->getType()->typeName() << " given, " << entry->params.at(i)->typeName() << " expected" << std::endl;
+            std::cout << std::endl;
+            return false;
+        }
+    }
 
     return true;
 }
