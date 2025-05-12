@@ -83,7 +83,7 @@ ASTNodeType* VarExpr::getType() const {
 
 bool VarExpr::check(SymbolTable &table, int blockLevel) {
     std::cout << "Checking VarExpr..." << std::endl;
-    if(table.lookup(id->name, blockLevel) == nullptr) {
+    if(table.lookupVariable(id->name, blockLevel) == nullptr) {
         std::string indentStr(this->id->column-1-id->name.size(), ' ');
         std::string errorHighlight(id->name.size(), '^');
         std::cout << "*** Error line " << this->line << "." << std::endl;
@@ -264,7 +264,7 @@ bool UnaryExpr::check(SymbolTable &table, int blockLevel) {
     if(this->op == UnaryOp::Not) {
         std::shared_ptr<VarExpr> varExpr = std::dynamic_pointer_cast<VarExpr>(this->expr);
         if(varExpr) {
-            std::shared_ptr<IdentifierEntry> varInfo = table.lookup(varExpr->id->name, 2);
+            std::shared_ptr<IdentifierEntry> varInfo = table.lookupVariable(varExpr->id->name, 2);
 
             if(varInfo->type == ASTNodeType::intType) {
                 std::string indentStr(this->column+1, ' ');
@@ -308,7 +308,7 @@ CallExpr::CallExpr(std::shared_ptr<Identifier> id, int line, int column)
 
 
 bool CallExpr::check(SymbolTable &table, int blockLevel) {
-    // if(table.lookup(id->name, blockLevel) == nullptr) {
+    // if(table.lookupVariable(id->name, blockLevel) == nullptr) {
     //     std::cout << "*** No declaration for Function '" << id->name << "' found" << std::endl;
     // } //TODO: figure out a function table
     return true;

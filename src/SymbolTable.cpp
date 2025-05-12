@@ -9,7 +9,7 @@ SymbolTable::SymbolTable(bool verbose) {
     }
     
     for(int i = 0; i < 3; i++) {
-        this->tables.emplace_back();
+        this->variableTable.emplace_back();
     }
 }
 
@@ -23,21 +23,21 @@ void SymbolTable::install(std::string symbolName, int blockLevel) {
     entryToAdd.blockLevel = blockLevel;
     entryToAdd.name = symbolName;
 
-    if(this->tables.at(blockLevel).count(symbolName)) {
+    if(this->variableTable.at(blockLevel).count(symbolName)) {
         throw std::invalid_argument("Symbol name given is already installed in the symbol table");
     }
 
-    this->tables.at(blockLevel).insert({symbolName, entryToAdd});
+    this->variableTable.at(blockLevel).insert({symbolName, entryToAdd});
 }
 
 // TODO: if blockLevel == 2, try looking in blockLevel == 1 for global vars
-std::shared_ptr<IdentifierEntry> SymbolTable::lookup(std::string symbolName, int blockLevel) {
+std::shared_ptr<IdentifierEntry> SymbolTable::lookupVariable(std::string symbolName, int blockLevel) {
     if(this->verbose) {
         std::cout << "Looking up symbol: " << symbolName << " at blockLevel: " << blockLevel << std::endl;
     }
 
     try {
-        return std::make_shared<IdentifierEntry>(this->tables.at(blockLevel).at(symbolName));
+        return std::make_shared<IdentifierEntry>(this->variableTable.at(blockLevel).at(symbolName));
     }
     catch(std::out_of_range e) {
         return nullptr;
@@ -50,5 +50,5 @@ void SymbolTable::clearBlockLevelTwo() {
         std::cout << "Clearing block level 2" << std::endl;
     }
 
-    this->tables.at(2).clear();
+    this->variableTable.at(2).clear();
 }

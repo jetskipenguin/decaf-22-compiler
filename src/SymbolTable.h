@@ -12,10 +12,10 @@
 class SymbolTable {
     private:
         bool verbose;
-        std::vector<std::unordered_map<std::string, IdentifierEntry>> tables;
+        std::vector<std::unordered_map<std::string, IdentifierEntry>> variableTable;
     public:
         SymbolTable(bool verbose);
         void install(std::string, int blockLevel);
-        std::shared_ptr<IdentifierEntry> lookup(std::string, int blockLevel);
+        std::shared_ptr<IdentifierEntry> lookupVariable(std::string, int blockLevel);
         void clearBlockLevelTwo();
 };

@@ -21,7 +21,7 @@ void analyzeAST(std::shared_ptr<ASTRootNode> &rootNode, bool verbose) {
                 std::cout << "Analyzing VarDecl: " << varDecl->identifier->name << std::endl;
             }
 
-            std::shared_ptr<IdentifierEntry> entry = table.lookup(varDecl->identifier->name, 1);
+            std::shared_ptr<IdentifierEntry> entry = table.lookupVariable(varDecl->identifier->name, 1);
             entry->type = varDecl->type;
             varDecl->check(table, 1);
             continue;
@@ -33,7 +33,7 @@ void analyzeAST(std::shared_ptr<ASTRootNode> &rootNode, bool verbose) {
                 std::cout << "Analyzing FunctionDecl: " << functionDecl->identifier->name << std::endl;
             }
 
-            std::shared_ptr<IdentifierEntry> entry = table.lookup(functionDecl->identifier->name, 1);
+            std::shared_ptr<IdentifierEntry> entry = table.lookupVariable(functionDecl->identifier->name, 1);
             entry->type = functionDecl->returnType;
             
             if(verbose) {
@@ -80,12 +80,12 @@ void analyzeFunction(std::shared_ptr<FunctionDecl> functionDecl, SymbolTable &ta
 // Prints error if declaration for given identifier name does not exist.
 void verifyVarDeclExists(std::string identifierName, SymbolTable &table) {
 
-    std::shared_ptr<IdentifierEntry> entry = table.lookup(identifierName, 2);
+    std::shared_ptr<IdentifierEntry> entry = table.lookupVariable(identifierName, 2);
     if(entry != nullptr) {
         return;
     }
 
-    entry = table.lookup(identifierName, 1);
+    entry = table.lookupVariable(identifierName, 1);
     if(entry != nullptr) {
         return;
     }
