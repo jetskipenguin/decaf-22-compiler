@@ -197,6 +197,12 @@ ASTNodeType* BinaryExpr::getType() const {
     ASTNodeType* leftType = left->getType();
     ASTNodeType* rightType = right->getType();
 
+    if (op == Equal || op == NotEqual || 
+        op == Less || op == LessEqual || 
+        op == Greater || op == GreaterEqual) {
+        return ASTNodeType::boolType;
+    }
+
     if (leftType->isError() || rightType->isError()) {
         return ASTNodeType::errorType;
     }
@@ -210,12 +216,6 @@ ASTNodeType* BinaryExpr::getType() const {
     }
 
     if (op == And || op == Or) {
-        return ASTNodeType::boolType;
-    }
-
-    if (op == Equal || op == NotEqual || 
-        op == Less || op == LessEqual || 
-        op == Greater || op == GreaterEqual) {
         return ASTNodeType::boolType;
     }
 
@@ -332,6 +332,9 @@ bool CallExpr::check(SymbolTable &table, int blockLevel) {
         return false;
     }
 
+    for(auto &arg : this->args) {
+        arg->check(table, blockLevel);
+    }
 
     for(int i = 0; i < this->args.size(); i++) {
         if(this->args.at(i)->getType() != entry->params.at(i)) {
