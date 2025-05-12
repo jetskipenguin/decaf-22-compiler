@@ -85,7 +85,7 @@ bool VarExpr::check(SymbolTable &table, int blockLevel) {
     if(table.lookupVariable(id->name, blockLevel) == nullptr) {
         std::string indentStr(this->id->column-1-id->name.size(), ' ');
         std::string errorHighlight(id->name.size(), '^');
-        std::cout << "*** Error line " << this->line << "." << std::endl;
+        std::cout << std::endl << "*** Error line " << this->line << "." << std::endl;
         std::cout << SourceInfo::sourceCode.at(this->line-1) << std::endl;
         std::cout << indentStr << errorHighlight << std::endl;
         std::cout << "*** No declaration found for variable '" << id->name << "'" << std::endl;
@@ -149,7 +149,7 @@ bool BinaryExpr::check(SymbolTable &table, int blockLevel) {
 
     if(!isValidOperandForGivenTypes()) {
         std::string indentStr(this->column+1, ' ');
-        std::cout << "*** Error line " << this->line << "." << std::endl;
+        std::cout << std::endl << "*** Error line " << this->line << "." << std::endl;
         std::cout << SourceInfo::sourceCode.at(this->line-1) << std::endl;
         std::cout << indentStr << "^" << std::endl;
         std::cout << "*** Incompatible operands: " << leftType->typeName() << " " << this->getOpAsString() << " " << rightType->typeName() << std::endl;
@@ -271,7 +271,7 @@ bool UnaryExpr::check(SymbolTable &table, int blockLevel) {
 
             if(varInfo->type == ASTNodeType::intType) {
                 std::string indentStr(this->column+1, ' ');
-                std::cout << "*** Error line " << this->line << "." << std::endl;
+                std::cout << std::endl << "*** Error line " << this->line << "." << std::endl;
                 std::cout << SourceInfo::sourceCode.at(this->line-1) << std::endl;
                 std::cout << indentStr << "^" << std::endl;
                 std::cout << "*** Incompatible operand: ! int" << std::endl; 
@@ -314,7 +314,7 @@ bool CallExpr::check(SymbolTable &table, int blockLevel) {
     std::shared_ptr<FunctionEntry> entry = table.lookupFunction(id->name, 1);
     if(entry == nullptr) {
         std::string indentStr(this->id->column-1-id->name.size(), ' ');
-        std::cout << "*** Error line " << this->line << "." << std::endl;
+        std::cout << std::endl << "*** Error line " << this->line << "." << std::endl;
         std::cout << SourceInfo::sourceCode.at(this->line-1) << std::endl;
         std::cout << "*** No declaration for Function '" << id->name << "' found" << std::endl << std::endl;
         return false;
@@ -322,7 +322,7 @@ bool CallExpr::check(SymbolTable &table, int blockLevel) {
 
     if(this->args.size() != entry->params.size()) {
         std::string indentStr(this->id->column-1-id->name.size(), ' ');
-        std::cout << "*** Error line " << this->line << "." << std::endl;
+        std::cout << std::endl << "*** Error line " << this->line << "." << std::endl;
         std::cout << SourceInfo::sourceCode.at(this->line-1) << std::endl;
         std::cout << "*** Function '" << entry->id.name << "' expects " << entry->params.size() << " but " << this->args.size() << " given" << std::endl;
         std::cout << std::endl;
@@ -336,7 +336,7 @@ bool CallExpr::check(SymbolTable &table, int blockLevel) {
     for(int i = 0; i < this->args.size(); i++) {
         if(this->args.at(i)->getType() != entry->params.at(i)) {
             std::string indentStr(this->args.at(i)->column-1, ' ');
-            std::cout << "*** Error line " << this->line << "." << std::endl;
+            std::cout << std::endl << "*** Error line " << this->line << "." << std::endl;
             std::cout << SourceInfo::sourceCode.at(this->line-1) << std::endl;
             std::cout << indentStr << "^" << std::endl;
             std::cout << "*** Incompatible argument " << i + 1 << ": " << this->args.at(i)->getType()->typeName() << " given, " << entry->params.at(i)->typeName() << " expected" << std::endl;
@@ -384,7 +384,7 @@ bool AssignExpr::check(SymbolTable &table, int blockLevel) {
 
     if(!leftType->isAssignableTo(rightType)) {
         std::string indentStr(this->column+1, ' ');
-        std::cout << "*** Error line " << this->line << "." << std::endl;
+        std::cout << std::endl << "*** Error line " << this->line << "." << std::endl;
         std::cout << SourceInfo::sourceCode.at(this->line-1) << std::endl;
         std::cout << indentStr << "^" << std::endl;
         std::cout << "*** Incompatible operands: " << this->left->getType()->typeName() << " = " << this->right->getType()->typeName() << std::endl;
@@ -450,7 +450,7 @@ void IfStmt::check(SymbolTable &table, int blockLevel) {
     if(cond->getType() != ASTNodeType::boolType) {
         std::string indentStr(this->cond->column-1-condLength, ' ');
         std::string errorHighlight(condLength, '^');
-        std::cout << "*** Error line " << this->line << "." << std::endl;
+        std::cout << std::endl << "*** Error line " << this->line << "." << std::endl;
         std::cout << SourceInfo::sourceCode.at(this->line-1) << std::endl;
         std::cout << indentStr << errorHighlight << std::endl; // TODO: make the length of the error highlight variable
         std::cout << "*** Test expression must have boolean type" << std::endl;
