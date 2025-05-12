@@ -10,10 +10,11 @@ SymbolTable::SymbolTable(bool verbose) {
     
     for(int i = 0; i < 3; i++) {
         this->variableTable.emplace_back();
+        this->functionTable.emplace_back();
     }
 }
 
-void SymbolTable::install(std::string symbolName, int blockLevel) {
+void SymbolTable::installVariable(std::string symbolName, int blockLevel) {
 
     if(this->verbose) {
         std::cout << "Installed symbol: " << symbolName << " at blockLevel: " << blockLevel << std::endl;
@@ -30,14 +31,44 @@ void SymbolTable::install(std::string symbolName, int blockLevel) {
     this->variableTable.at(blockLevel).insert({symbolName, entryToAdd});
 }
 
+void SymbolTable::installFunction(std::string symbolName, int blockLevel) {
+
+    if(this->verbose) {
+        std::cout << "Installed symbol: " << symbolName << " at blockLevel: " << blockLevel << std::endl;
+    }
+    
+    IdentifierEntry entryToAdd;
+    entryToAdd.blockLevel = blockLevel;
+    entryToAdd.name = symbolName;
+
+    if(this->functionTable.at(blockLevel).count(symbolName)) {
+        throw std::invalid_argument("Symbol name given is already installed in the symbol table");
+    }
+
+    this->functionTable.at(blockLevel).insert({symbolName, entryToAdd});
+}
+
 // TODO: if blockLevel == 2, try looking in blockLevel == 1 for global vars
 std::shared_ptr<IdentifierEntry> SymbolTable::lookupVariable(std::string symbolName, int blockLevel) {
     if(this->verbose) {
-        std::cout << "Looking up symbol: " << symbolName << " at blockLevel: " << blockLevel << std::endl;
+        std::cout << "Looking up variable symbol: " << symbolName << " at blockLevel: " << blockLevel << std::endl;
     }
 
     try {
         return std::make_shared<IdentifierEntry>(this->variableTable.at(blockLevel).at(symbolName));
+    }
+    catch(std::out_of_range e) {
+        return nullptr;
+    }
+}
+
+std::shared_ptr<IdentifierEntry> SymbolTable::lookupFunction(std::string symbolName, int blockLevel) {
+    if(this->verbose) {
+        std::cout << "Looking up function symbol: " << symbolName << " at blockLevel: " << blockLevel << std::endl;
+    }
+
+    try {
+        return std::make_shared<IdentifierEntry>(this->functionTable.at(blockLevel).at(symbolName));
     }
     catch(std::out_of_range e) {
         return nullptr;

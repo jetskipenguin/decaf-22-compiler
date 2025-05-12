@@ -8,7 +8,7 @@ void analyzeAST(std::shared_ptr<ASTRootNode> &rootNode, bool verbose) {
     for (const auto& decl : rootNode->decls) {
         
         try {
-            table.install(decl->identifier->name, 1);
+            table.installVariable(decl->identifier->name, 1);
         }
         catch(std::invalid_argument e) {
              std::cout << "Error: Identifier " << decl->identifier->name << " cannot be used more than once" << std::endl;
@@ -42,7 +42,7 @@ void analyzeAST(std::shared_ptr<ASTRootNode> &rootNode, bool verbose) {
             // Record function params in symbol table
             for(auto &param: functionDecl->formals) {
                 
-                table.install(param->identifier->name, 2);
+                table.installVariable(param->identifier->name, 2);
             }
 
             if(verbose) {
@@ -55,7 +55,7 @@ void analyzeAST(std::shared_ptr<ASTRootNode> &rootNode, bool verbose) {
                     continue;
                 }
 
-                table.install(maybeLocalVar->varDecl->identifier->name, 2);
+                table.installVariable(maybeLocalVar->varDecl->identifier->name, 2);
             }
 
             functionDecl->check(table, 2);
