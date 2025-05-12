@@ -308,9 +308,31 @@ CallExpr::CallExpr(std::shared_ptr<Identifier> id, int line, int column)
 
 
 bool CallExpr::check(SymbolTable &table, int blockLevel) {
-    // if(table.lookupVariable(id->name, blockLevel) == nullptr) {
-    //     std::cout << "*** No declaration for Function '" << id->name << "' found" << std::endl;
-    // } //TODO: figure out a function table
+    std::shared_ptr<FunctionEntry> entry = table.lookupFunction(id->name, 1);
+    if(entry == nullptr) {
+        std::string indentStr(this->id->column-1-id->name.size(), ' ');
+        std::cout << "*** Error line " << this->line << "." << std::endl;
+        std::cout << SourceInfo::sourceCode.at(this->line-1) << std::endl;
+        std::cout << "*** No declaration for Function '" << id->name << "' found" << std::endl << std::endl;
+        return false;
+    }
+
+
+
+    if(this->args.size() != entry->params.size()) {
+        std::string indentStr(this->id->column-1-id->name.size(), ' ');
+        std::cout << "*** Error line " << this->line << "." << std::endl;
+        std::cout << SourceInfo::sourceCode.at(this->line-1) << std::endl;
+        std::cout << "*** Function '" << entry->id.name << "' expects " << entry->params.size() << " but " << this->args.size() << " given" << std::endl;
+        std::cout << std::endl;
+        return false;
+    }
+
+
+    // for(auto &arg : this->args) {
+        
+    // }   
+
     return true;
 }
 

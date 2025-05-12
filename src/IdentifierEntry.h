@@ -11,3 +11,8 @@ struct IdentifierEntry {
     ASTNodeType* type;
     int blockLevel;
 };
+
+struct FunctionEntry {
+    IdentifierEntry id;
+    std::vector<ASTNodeType*> params;
+};

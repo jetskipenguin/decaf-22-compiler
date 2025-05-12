@@ -25,29 +25,36 @@ void analyzeAST(std::shared_ptr<ASTRootNode> &rootNode, bool verbose) {
             if(verbose) {
                 std::cout << "Analyzing FunctionDecl: " << functionDecl->identifier->name << std::endl;
             }
+
             table.installFunction(functionDecl->identifier->name, 1);
-            std::shared_ptr<IdentifierEntry> entry = table.lookupFunction(functionDecl->identifier->name, 1);
-            entry->type = functionDecl->returnType;
+            std::shared_ptr<FunctionEntry> entry = table.lookupFunction(functionDecl->identifier->name, 1);
+            entry->id.type = functionDecl->returnType;
             
             if(verbose) {
                 std::cout << "Checking for function params..." << std::endl;
             }
             // Record function params in symbol table
             for(auto &param: functionDecl->formals) {
-                
                 table.installVariable(param->identifier->name, 2);
             }
 
             if(verbose) {
                 std::cout << "Checking for local variables..." << std::endl;
             }
+            
+            // Record types of function params
+            for(auto &param : functionDecl->formals) {
+                entry->params.push_back(param->type);
+            }
+
+            std::cout << "Recorded " << entry->params.size() << " for function: " << entry->id.name << std::endl;
+
             // Record local variables in symbol table
             for(auto &stmt : functionDecl->body->stmts) {
                 std::shared_ptr<VarDeclStmt> maybeLocalVar = std::dynamic_pointer_cast<VarDeclStmt>(stmt);
                 if(!maybeLocalVar) {
                     continue;
                 }
-
                 table.installVariable(maybeLocalVar->varDecl->identifier->name, 2);
             }
 

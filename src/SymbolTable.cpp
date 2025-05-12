@@ -15,37 +15,35 @@ SymbolTable::SymbolTable(bool verbose) {
 }
 
 void SymbolTable::installVariable(std::string symbolName, int blockLevel) {
-
-    if(this->verbose) {
+    if (this->verbose) {
         std::cout << "Installed symbol: " << symbolName << " at blockLevel: " << blockLevel << std::endl;
     }
-    
-    IdentifierEntry entryToAdd;
-    entryToAdd.blockLevel = blockLevel;
-    entryToAdd.name = symbolName;
 
-    if(this->variableTable.at(blockLevel).count(symbolName)) {
-        throw std::invalid_argument("Symbol name given is already installed in the symbol table");
+    auto entryToAdd = std::make_shared<IdentifierEntry>();
+    entryToAdd->blockLevel = blockLevel;
+    entryToAdd->name = symbolName;
+
+    if (this->variableTable.at(blockLevel).count(symbolName)) {
+        throw std::invalid_argument("Symbol name already installed");
     }
 
-    this->variableTable.at(blockLevel).insert({symbolName, entryToAdd});
+    this->variableTable.at(blockLevel)[symbolName] = entryToAdd;
 }
 
 void SymbolTable::installFunction(std::string symbolName, int blockLevel) {
-
-    if(this->verbose) {
+    if (this->verbose) {
         std::cout << "Installed function symbol: " << symbolName << " at blockLevel: " << blockLevel << std::endl;
     }
-    
-    IdentifierEntry entryToAdd;
-    entryToAdd.blockLevel = blockLevel;
-    entryToAdd.name = symbolName;
 
-    if(this->functionTable.at(blockLevel).count(symbolName)) {
-        throw std::invalid_argument("Symbol name given is already installed in the symbol table");
+    auto entryToAdd = std::make_shared<FunctionEntry>();
+    entryToAdd->id.blockLevel = blockLevel;
+    entryToAdd->id.name = symbolName;
+
+    if (this->functionTable.at(blockLevel).count(symbolName)) {
+        throw std::invalid_argument("Function name already installed");
     }
 
-    this->functionTable.at(blockLevel).insert({symbolName, entryToAdd});
+    this->functionTable.at(blockLevel)[symbolName] = entryToAdd;
 }
 
 // TODO: if blockLevel == 2, try looking in blockLevel == 1 for global vars
@@ -55,20 +53,20 @@ std::shared_ptr<IdentifierEntry> SymbolTable::lookupVariable(std::string symbolN
     }
 
     try {
-        return std::make_shared<IdentifierEntry>(this->variableTable.at(blockLevel).at(symbolName));
+        return this->variableTable.at(blockLevel).at(symbolName);
     }
     catch(std::out_of_range e) {
         return nullptr;
     }
 }
 
-std::shared_ptr<IdentifierEntry> SymbolTable::lookupFunction(std::string symbolName, int blockLevel) {
+std::shared_ptr<FunctionEntry> SymbolTable::lookupFunction(std::string symbolName, int blockLevel) {
     if(this->verbose) {
         std::cout << "Looking up function symbol: " << symbolName << " at blockLevel: " << blockLevel << std::endl;
     }
 
     try {
-        return std::make_shared<IdentifierEntry>(this->functionTable.at(blockLevel).at(symbolName));
+        return this->functionTable.at(blockLevel).at(symbolName);
     }
     catch(std::out_of_range e) {
         return nullptr;
