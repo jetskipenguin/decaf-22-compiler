@@ -22,5 +22,5 @@ cd workdir
 
 ## Test Instructions
 ```
-./buildAndRun
+./buildAndTest.sh
 ```
